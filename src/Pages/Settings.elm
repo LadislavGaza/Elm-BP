@@ -8,6 +8,7 @@ import Collage exposing (..)
 import Collage.Layout exposing (..)
 import Collage.Render exposing (svg)
 import Color exposing (..)
+import Data exposing (..)
 import Dict exposing (Dict)
 import Dict.Extra as Extra
 import Element as Element exposing (..)
@@ -27,31 +28,10 @@ import Keyboard.Key
 import List
 import String exposing (..)
 import Task
-import Types exposing (..)
 
 
 
 ----MODEL----
-
-
-boardSize =
-    8
-
-
-blockSize =
-    64
-
-
-groundColor =
-    lightGreen
-
-
-roadColor =
-    darkGray
-
-
-
--- TODO: Randomize roads
 
 
 roads : List Point
@@ -71,8 +51,24 @@ roads =
     ]
 
 
+boardSize =
+    8
 
--- Model
+
+blockSize =
+    64
+
+
+groundColor =
+    lightGreen
+
+
+roadColor =
+    darkGray
+
+
+type alias Point =
+    ( Int, Int )
 
 
 type Direction
@@ -82,8 +78,9 @@ type Direction
     | Left
 
 
-type alias Point =
-    ( Int, Int )
+type Movement
+    = KeyInput
+    | Animated
 
 
 type alias Car =
@@ -91,11 +88,16 @@ type alias Car =
     , moving : Bool
     , direction : Direction
     , color : Color.Color
+    , movement : Movement
     }
 
 
 type alias Cars =
     Dict Int Car
+
+
+
+-- Model
 
 
 type alias Delta =
@@ -121,13 +123,14 @@ init user =
 initialCars : Cars
 initialCars =
     Dict.fromList
-        [ makeCarEntry 1 ( 0, 0 ) Right lightBlue
+        [ makeCarEntry True 1 ( 0, 0 ) Right lightBlue
+        , makeCarEntry False 2 ( 1, 0 ) Right red
         ]
 
 
-makeCarEntry : Int -> Point -> Direction -> Color.Color -> ( Int, Car )
-makeCarEntry index pt dir c =
-    ( index, { moving = True, direction = dir, coords = pt, color = c } )
+makeCarEntry : Bool -> Int -> Point -> Direction -> Color.Color -> ( Int, Car )
+makeCarEntry mov index pt dir c =
+    ( index, { moving = mov, direction = dir, coords = pt, color = c, movement = Animated } )
 
 
 
@@ -148,7 +151,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         HandleKeyboardEvent event ->
-            ( { model | lastEvent = Just event }
+            ( { model
+                | lastEvent = Just event
+                , cars = moveCars (Just event) model.cars
+              }
             , Cmd.none
             )
 
@@ -225,60 +231,6 @@ subs _ =
 ---- VIEW ----
 
 
-view : Model -> Element Msg
-view model =
-    let
-        auticka =
-            Element.html (boardElement model |> svg)
-    in
-    column [ Element.width fill, Element.height fill ]
-        [ row
-            [ Element.height fill
-            , Element.width fill
-            , paddingXY 10 10
-            , centerX
-            , spacing 40
-            , Background.color (Element.rgb255 254 216 177)
-            , Element.htmlAttribute
-                (on "keydown" <|
-                    Json.map HandleKeyboardEvent decodeKeyboardEvent
-                )
-            , Element.htmlAttribute (tabindex 0)
-            ]
-            [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
-                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
-                , el
-                    [ alignTop
-                    , centerX
-                    , Font.size 50
-                    ]
-                    (viewEvent model.lastEvent)
-                , el [ centerX ] auticka
-                , Element.link buttonStyle
-                    { label = Element.text "Home"
-                    , url = "Home"
-                    }
-                ]
-            ]
-        ]
-
-
-buttonStyle : List (Element.Attribute msg)
-buttonStyle =
-    [ Element.width (px 300)
-    , Background.color (Element.rgb255 57 124 213)
-    , Font.color (Element.rgb 1 1 1)
-    , paddingXY 14 10
-
-    -- , style "margin-top" "10px"
-    -- , style "margin-left" "10px"
-    , Border.rounded 10
-    , Font.size 20
-    , Font.center
-    , centerX
-    ]
-
-
 border : LineStyle
 border =
     solid thin <| uniform black
@@ -353,8 +305,8 @@ carElement car =
         |> Collage.rotate (degrees rotationRadians)
 
 
-viewEvent : Maybe KeyboardEvent -> Element Msg
-viewEvent maybeEvent =
+viewEvent : Maybe KeyboardEvent -> Cars -> Element Msg
+viewEvent maybeEvent cars =
     case maybeEvent of
         Just event ->
             case event.keyCode of
@@ -384,3 +336,94 @@ viewEvent maybeEvent =
 
         Nothing ->
             el [] (Element.text "No event yet")
+
+
+moveCars : Maybe KeyboardEvent -> Cars -> Cars
+moveCars maybeEvent cars =
+    Dict.map (\_ c -> moveCar maybeEvent c) cars
+
+
+moveCar : Maybe KeyboardEvent -> Car -> Car
+moveCar maybeEvent car =
+    let
+        nextCoord ( x, y ) key =
+            case key of
+                Keyboard.Key.Up ->
+                    ( x, y - 1 )
+
+                Keyboard.Key.Right ->
+                    ( x + 1, y )
+
+                Keyboard.Key.Down ->
+                    ( x, y + 1 )
+
+                Keyboard.Key.Left ->
+                    ( x - 1, y )
+
+                _ ->
+                    ( x, y )
+    in
+    case maybeEvent of
+        Just event ->
+            if car.moving then
+                car
+
+            else
+                { car | coords = nextCoord car.coords event.keyCode }
+
+        Nothing ->
+            car
+
+
+view : Model -> Element Msg
+view model =
+    let
+        auticka =
+            Element.html (boardElement model |> svg)
+    in
+    column [ Element.width fill, Element.height fill ]
+        [ row
+            [ Element.height fill
+            , Element.width fill
+            , paddingXY 10 10
+            , centerX
+            , spacing 40
+            , Background.color (Element.rgb255 254 216 177)
+            , Element.htmlAttribute
+                (on "keydown" <|
+                    Json.map HandleKeyboardEvent decodeKeyboardEvent
+                )
+            , Element.htmlAttribute (tabindex 0)
+            ]
+            [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
+                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
+                , el
+                    [ alignTop
+                    , centerX
+                    , Font.size 50
+                    ]
+                    (viewEvent model.lastEvent model.cars)
+                , el [ centerX ] auticka
+                , Element.link buttonStyle
+                    { label = Element.text "Home"
+                    , url = "Home"
+                    }
+                ]
+            ]
+        ]
+
+
+buttonStyle : List (Element.Attribute msg)
+buttonStyle =
+    [ Element.width (px 300)
+    , Background.color (Element.rgb255 57 124 213)
+    , Font.color (Element.rgb 1 1 1)
+    , paddingXY 14 10
+
+    -- , style "margin-top" "10px"
+    -- , style "margin-left" "10px"
+    , Border.rounded 10
+    , Font.size 20
+    , Font.center
+    , centerX
+    ]

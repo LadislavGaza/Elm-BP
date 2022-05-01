@@ -5,6 +5,7 @@ import Browser.Events exposing (onClick)
 import Browser.Navigation as Nav
 import Collage.Layout exposing (height)
 import Color
+import Data exposing (..)
 import Element as Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -23,7 +24,6 @@ import Pages.Login
 import Pages.Settings
 import Ports
 import Time
-import Types exposing (User)
 import Url
 import Url.Parser as Parser exposing ((</>), Parser, custom, fragment, map, oneOf, s, top)
 

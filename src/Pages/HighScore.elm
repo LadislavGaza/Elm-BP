@@ -8,6 +8,7 @@ import Collage exposing (..)
 import Collage.Layout exposing (..)
 import Collage.Render exposing (svg)
 import Color exposing (..)
+import Data exposing (..)
 import Dict exposing (Dict)
 import Dict.Extra as Extra
 import Element as Element exposing (..)
@@ -25,7 +26,6 @@ import Keyboard.Event exposing (KeyboardEvent, decodeKeyboardEvent)
 import List
 import String exposing (..)
 import Task
-import Types exposing (..)
 
 
 

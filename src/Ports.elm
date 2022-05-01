@@ -1,8 +1,8 @@
 port module Ports exposing (..)
 
+import Data exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Types exposing (..)
 
 
 port storeUser : Decode.Value -> Cmd msg
