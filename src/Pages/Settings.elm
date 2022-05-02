@@ -124,7 +124,9 @@ initialCars : Cars
 initialCars =
     Dict.fromList
         [ makeCarEntry True 1 ( 0, 0 ) Right lightBlue
-        , makeCarEntry False 2 ( 1, 0 ) Right red
+        , makeCarEntry False 2 ( 1, 1 ) Right red
+        , makeCarEntry True 3 ( 7, 2 ) Left black
+        , makeCarEntry False 4 ( 2, 4 ) Right white
         ]
 
 
@@ -297,11 +299,8 @@ carElement car =
                 |> styled ( uniform car.color, border )
 
         -- Denotes direction
-        ln =
-            path [ ( 0, 0 - (blockSize / 2) ), ( 0, blockSize / 2 ) ]
-                |> traced (solid thin (uniform black))
     in
-    stack [ ln, tri ]
+    tri
         |> Collage.rotate (degrees rotationRadians)
 
 
@@ -362,6 +361,23 @@ moveCar maybeEvent car =
 
                 _ ->
                     ( x, y )
+
+        newDir dir key =
+            case key of
+                Keyboard.Key.Up ->
+                    Up
+
+                Keyboard.Key.Right ->
+                    Right
+
+                Keyboard.Key.Down ->
+                    Down
+
+                Keyboard.Key.Left ->
+                    Left
+
+                _ ->
+                    dir
     in
     case maybeEvent of
         Just event ->
@@ -369,7 +385,10 @@ moveCar maybeEvent car =
                 car
 
             else
-                { car | coords = nextCoord car.coords event.keyCode }
+                { car
+                    | coords = nextCoord car.coords event.keyCode
+                    , direction = newDir car.direction event.keyCode
+                }
 
         Nothing ->
             car

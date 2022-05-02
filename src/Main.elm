@@ -36,7 +36,7 @@ type Page
     = Home Pages.Home.Model
     | Editor Pages.Editor.Model
     | HighScore Pages.HighScore.Model
-      -- | Level Pages.Level.Model
+    | Level Pages.Level.Model
       -- | Login Pages.Login.Model
     | Settings Pages.Settings.Model
     | Global
@@ -82,7 +82,7 @@ type Msg
     | HomeMsg Pages.Home.Msg
     | EditorMsg Pages.Editor.Msg
     | HighScoreMsg Pages.HighScore.Msg
-      -- | LevelMsg Pages.Level.Msg
+    | LevelMsg Pages.Level.Msg
       -- | LoginMsg Pages.Login.Msg
     | SettingsMsg Pages.Settings.Msg
     | PlayMe Time.Posix
@@ -144,13 +144,14 @@ update message model =
         --         _ ->
         --             ( model, Cmd.none )
         --
-        -- LevelMsg msg ->
-        --     case model.page of
-        --         Level level ->
-        --             stepLevel model (Pages.Level.update msg level)
-        --
-        --         _ ->
-        --             ( model, Cmd.none )
+        LevelMsg msg ->
+            case model.page of
+                Level level ->
+                    stepLevel model (Pages.Level.update msg level)
+
+                _ ->
+                    ( model, Cmd.none )
+
         PlayMe _ ->
             ( model, Ports.play (Encode.bool True) )
 
@@ -166,7 +167,7 @@ stepUrl url model =
                 , route (s "Settings") (stepSettings model (Pages.Settings.init model.user))
 
                 -- , route (s "Login") (stepLogin model (Pages.Login.init model.user))
-                -- , route (s "Level") (stepLevel model (Pages.Level.init model.user))
+                , route (s "Level") (stepLevel model (Pages.Level.init model.user))
                 ]
     in
     case Parser.parse parser url of
@@ -215,11 +216,16 @@ stepSettings model ( settings, cmds ) =
 --     )
 --
 --
--- stepLevel : Model -> ( Pages.Level.Model, Cmd Pages.Level.Msg ) -> ( Model, Cmd Msg )
--- stepLevel model ( level, cmds ) =
---     ( { model | page = Level level }
---     , Cmd.map LevelMsg cmds
---     )
+
+
+stepLevel : Model -> ( Pages.Level.Model, Cmd Pages.Level.Msg ) -> ( Model, Cmd Msg )
+stepLevel model ( level, cmds ) =
+    ( { model | page = Level level }
+    , Cmd.map LevelMsg cmds
+    )
+
+
+
 {- https://github.com/elm/package.elm-lang.org/blob/master/src/frontend/Main.elm -}
 
 
@@ -256,8 +262,9 @@ subscriptions model =
             -- Login loginModel ->
             --     Sub.none
             --
-            -- Level levelModel ->
-            --     Sub.none
+            Level levelModel ->
+                Sub.map LevelMsg (Pages.Level.subs levelModel)
+
             Global ->
                 Sub.none
         ]
@@ -298,8 +305,9 @@ searchView model =
         --
         -- Login loginModel ->
         --     Html.map LoginMsg (Pages.Login.view loginModel)
-        -- Level levelModel ->
-        --     Element.map LevelMsg (Pages.Level.view levelModel)
+        Level levelModel ->
+            Element.map LevelMsg (Pages.Level.view levelModel)
+
         Global ->
             globalHomeView
 
@@ -313,11 +321,11 @@ globalHomeView =
                 , el [ alignTop, centerX, Font.size 50 ] (Element.text "Menu")
                 , Element.link buttonStyle
                     { label = Element.text "Level 1"
-                    , url = "Editor"
+                    , url = "Level"
                     }
                 , Element.link buttonStyle
                     { label = Element.text "Level 2"
-                    , url = "Editor"
+                    , url = "Nic"
                     }
                 , Element.link buttonStyle
                     { label = Element.text "Settings"

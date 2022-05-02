@@ -1,377 +1,546 @@
 module Pages.Level exposing (..)
 
-import Browser exposing (Document)
-import Browser.Events exposing (onKeyDown)
-import Element exposing (Element, Orientation(..), centerX, fill, height, width)
+import Browser exposing (element)
+import Browser.Dom as Dom
+import Browser.Events exposing (onAnimationFrameDelta)
+import Char exposing (..)
+import Collage exposing (..)
+import Collage.Layout exposing (..)
+import Collage.Render exposing (svg)
+import Color exposing (..)
+import Data exposing (..)
+import Debug exposing (toString)
+import Dict exposing (Dict)
+import Dict.Extra exposing (filterMap)
+import Element as Element exposing (..)
+import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
-import Html exposing (Html)
-import Json.Decode
-import List.Extra exposing (getAt, removeAt)
-import Random exposing (Seed, initialSeed, int, step)
-import Random.List
-import Svg exposing (Svg)
-import Svg.Attributes exposing (cx, cy, r, rx, ry, x, y)
+import Element.Input as Input
+import Element.Region as Region
+import Html exposing (Attribute, Html, div, h1, h3, p, pre, text)
+import Html.Attributes exposing (id, style, tabindex)
+import Html.Events exposing (on)
+import Json.Decode as Json exposing (..)
+import Json.Encode as Encode exposing (..)
+import Keyboard
+import Keyboard.Event exposing (KeyboardEvent, decodeKeyboardEvent)
+import Keyboard.Key
+import List
+import String exposing (..)
+import Task
+
+
+
+----MODEL----
 
 
 type Direction
-    = Left
-    | Up
+    = Up
     | Right
     | Down
-    | Change
-    | Other
+    | Left
+
+
+type Movement
+    = KeyInput
+    | Animated
+
+
+type Field
+    = Road Car
+    | RoadEmpty
+    | Tile
+    | Empty
+
+
+type alias Point =
+    ( Int, Int )
+
+
+type alias Car =
+    { movement : Movement
+    , direction : Direction
+    , color : Color.Color
+    }
+
+
+
+-- type alias Cars =
+--     List Car
+
+
+type alias Board =
+    Dict Point Field
+
+
+initialBoard : Board
+initialBoard =
+    Dict.fromList
+        [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = green } )
+        , ( ( 0, 1 ), RoadEmpty )
+        , ( ( 0, 2 ), RoadEmpty )
+        , ( ( 0, 3 ), Tile )
+        , ( ( 1, 0 ), Tile )
+        , ( ( 1, 1 ), RoadEmpty )
+        , ( ( 1, 2 ), RoadEmpty )
+        , ( ( 1, 3 ), RoadEmpty )
+        , ( ( 2, 0 ), RoadEmpty )
+        , ( ( 2, 1 ), RoadEmpty )
+        , ( ( 2, 2 ), Tile )
+        , ( ( 2, 3 ), Tile )
+        , ( ( 3, 0 ), Tile )
+        , ( ( 3, 1 ), Tile )
+        , ( ( 3, 2 ), RoadEmpty )
+        , ( ( 3, 3 ), RoadEmpty )
+        ]
+
+
+boardSize =
+    4
+
+
+blockSize =
+    64
+
+
+tileColor =
+    lightGreen
+
+
+roadColor =
+    darkGray
+
+
+
+-- Model
+
+
+type alias Delta =
+    Float
 
 
 type alias Model =
-    { tick : Int
-    , entities : Entities
-    , gameSettings : GameSettings
+    { localUser : User
+    , lastEvent : Maybe KeyboardEvent
+    , time : Float
+    , board : Board
     }
 
 
-type alias GameSettings =
-    { size : ( Int, Int )
-    , color : String
-    }
-
-
-type Component
-    = KeyboardComponent
-    | AreaComponent Int Int Int Int AreaStyling
-    | ScoreComponent
-    | LocationComponent Location LocationStyling
-    | RenderComponent (List Component -> Svg.Svg Msg)
-
-
-type alias Location =
-    { x : Int
-    , y : Int
-    , speed : Float
-    }
-
-
-type alias Entities =
-    List Entity
-
-
-type alias AreaStyling =
-    { color : String
-    }
-
-
-type alias LocationStyling =
-    { radius : Int
-    , color : String
-    }
-
-
-sheepStyling =
-    LocationStyling 5 "#9bf6ff"
-
-
-dogStyling =
-    LocationStyling 10 "#ffc6ff"
-
-
-areaStyling =
-    AreaStyling "#fdffb6"
-
-
-type EntityType
-    = Sheep
-    | Dog
-    | Target
-
-
-type alias Entity =
-    { entityType : EntityType
-    , components : List Component
-    }
-
-
-type alias Dog =
-    Entity
-
-
-type alias Sheep =
-    Entity
-
-
-type alias Target =
-    Entity
-
-
-type alias Flock =
-    List Sheep
-
-
-startingSheeps =
-    [ { entityType = Sheep, components = [ LocationComponent (Location 100 200 0) sheepStyling ] }
-    , { entityType = Sheep, components = [ LocationComponent (Location 300 400 0) sheepStyling ] }
-    ]
-
-
-startingDog =
-    [ { entityType = Dog
-      , components = [ LocationComponent (Location 50 50 0) dogStyling, KeyboardComponent ]
-      }
-    ]
-
-
-target =
-    [ { entityType = Dog
-      , components = [ AreaComponent 50 50 100 100 areaStyling, KeyboardComponent ]
-      }
-    ]
-
-
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { tick = 0
-      , entities = startingSheeps ++ startingDog ++ target
-      , gameSettings = { size = ( 600, 600 ), color = "#bdb2ff" }
-      }
+init : User -> ( Model, Cmd Msg )
+init user =
+    ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard }
     , Cmd.none
     )
 
 
-main =
-    Browser.document
-        { init = init
-        , update = update
-        , subscriptions = subscriptions
-        , view = view
-        }
 
-
-toDirection : String -> Direction
-toDirection string =
-    case string of
-        "ArrowLeft" ->
-            Left
-
-        "ArrowRight" ->
-            Right
-
-        "ArrowUp" ->
-            Up
-
-        "ArrowDown" ->
-            Down
-
-        "Control" ->
-            Change
-
-        _ ->
-            Other
-
-
-keyDecoder : Json.Decode.Decoder Direction
-keyDecoder =
-    Json.Decode.map toDirection (Json.Decode.field "key" Json.Decode.string)
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    onKeyDown (Json.Decode.map KeyPressed keyDecoder)
+-- initialCars : Cars
+-- initialCars =
+--     Dict.fromList
+--         [ makeCarEntry True 1 ( 0, 0 ) Right lightBlue
+--         , makeCarEntry False 2 ( 1, 1 ) Right red
+--         , makeCarEntry True 3 ( 7, 2 ) Left black
+--         , makeCarEntry False 4 ( 2, 4 ) Right white
+--         ]
+-- makeCarEntry : Bool -> Int -> Point -> Direction -> Color.Color -> ( Int, Car )
+-- makeCarEntry mov index pt dir c =
+--     ( index, { moving = mov, direction = dir, coords = pt, color = c, movement = Animated } )
+---UPDATE----
+-- type Msg
+--     = Name String
+--     | Levels Int
+--     | UpdateInfo User
 
 
 type Msg
-    = KeyPressed Direction
+    = HandleKeyboardEvent KeyboardEvent
+    | NoOp
+    | Tick Delta
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        KeyPressed direction ->
-            case direction of
-                Change ->
-                    let
-                        newstartingSheeps =
-                            [ { entityType = Sheep, components = [ LocationComponent (Location 100 200 0) sheepStyling, KeyboardComponent ] }
-                            , { entityType = Sheep, components = [ LocationComponent (Location 300 400 0) sheepStyling ] }
-                            ]
+        HandleKeyboardEvent event ->
+            ( { model
+                | lastEvent = Just event
 
-                        newstartingDog =
-                            [ { entityType = Dog
-                              , components = [ LocationComponent (Location 50 50 0) dogStyling ]
-                              }
-                            ]
+                -- , cars = moveCars (Just event) model.cars
+              }
+            , Cmd.none
+            )
 
-                        newtarget =
-                            [ { entityType = Dog
-                              , components = [ AreaComponent 50 50 100 100 areaStyling, KeyboardComponent ]
-                              }
-                            ]
-                    in
-                    ( { model
-                        | entities = newstartingSheeps ++ newstartingDog ++ newtarget
-                      }
-                    , Cmd.none
-                    )
+        Tick dt ->
+            let
+                newTime =
+                    model.time + dt
 
-                _ ->
-                    ( { model | entities = handleKeyPress direction model.entities }, Cmd.none )
+                secsPassed =
+                    round model.time
 
+                newSecs =
+                    round newTime
 
-handleKeyPress : Direction -> Entities -> Entities
-handleKeyPress direction entities =
-    List.map
-        (\e ->
-            if hasKeyboardComponent e then
-                { e | components = updateLocationComponent e.components direction entities }
+                shouldUpdate =
+                    secsPassed /= newSecs
+            in
+            ( { model
+                | board =
+                    if shouldUpdate then
+                        tick dt model.board
 
-            else
-                e
-        )
-        entities
+                    else
+                        model.board
+                , time = newTime
+              }
+            , Cmd.none
+            )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
-hasKeyboardComponent : Entity -> Bool
-hasKeyboardComponent entity =
-    List.any
-        (\c ->
-            case c of
-                KeyboardComponent ->
-                    True
-
-                _ ->
-                    False
-        )
-        entity.components
+tick : Float -> Board -> Board
+tick dt board =
+    updateBoard board
 
 
-updateLocationComponent : List Component -> Direction -> Entities -> List Component
-updateLocationComponent components direction entities =
-    List.map
-        (\c ->
-            case c of
-                LocationComponent location styling ->
-                    LocationComponent (findNewLocation direction location entities) styling
-
-                _ ->
-                    c
-        )
-        components
-
-
-findNewLocation : Direction -> Location -> Entities -> Location
-findNewLocation direction location entities =
-    -- TODO: Loads, for now we don't use speed at all
-    case direction of
+nextCoords : Direction -> Point -> Point
+nextCoords dir ( x, y ) =
+    case dir of
         Up ->
-            { location | y = location.y - 10 }
-
-        Down ->
-            { location | y = location.y + 10 }
-
-        Left ->
-            { location | x = location.x - 10 }
+            ( x, y - 1 )
 
         Right ->
-            { location | x = location.x + 10 }
+            ( x + 1, y )
 
-        Change ->
-            location
+        Down ->
+            ( x, y + 1 )
 
-        Other ->
-            location
-
-
-
--- VIEW
+        Left ->
+            ( x - 1, y )
 
 
-view : Model -> Document Msg
-view model =
-    { title = "Game"
-    , body =
-        [ Element.layout
-            [ Font.family
-                [ Font.sansSerif
-                ]
-            , Element.width fill
-            ]
-          <|
-            Element.el
-                [ centerX
-                ]
-            <|
-                Element.html <|
-                    gameView model
-        ]
-    }
-
-
-gameView : Model -> Html Msg
-gameView model =
+updateBoard : Board -> Board
+updateBoard board =
+    -- Dict.map (\_ c -> updateCar c) cars
     let
-        backgroundRectangle =
-            Svg.rect
-                [ Svg.Attributes.height <| String.fromInt <| Tuple.first model.gameSettings.size
-                , Svg.Attributes.width <| String.fromInt <| Tuple.second model.gameSettings.size
-                , Svg.Attributes.fill "#bdb2ff"
-                ]
-                []
+        hasCar point field =
+            case field of
+                Road possibleCar ->
+                    True
 
-        renderComponents =
-            model.entities
-                |> List.concatMap
-                    (\entity ->
-                        entity.components
-                            |> List.filter
-                                (\c -> isLocationOrAreaComponent c)
-                    )
+                RoadEmpty ->
+                    False
+
+                Tile ->
+                    False
+
+                Empty ->
+                    False
+
+        carFields =
+            Dict.filter hasCar board
+
+        -- updatedCars =
+        --     Dict.map (updateCar carFields) board
+        helperDict =
+          {}
     in
-    Svg.svg
-        [ Svg.Attributes.height <| String.fromInt <| Tuple.first model.gameSettings.size
-        , Svg.Attributes.width <| String.fromInt <| Tuple.second model.gameSettings.size
+    Dict.map (\_ c -> pomoc c) board helperDict
+
+
+
+-- Dict.map (\_ c -> updateCar c board) carFields
+-- Dict.map hasCar board
+
+
+pomoc : (Point, Field) -> Board -> Board
+pomoc (point, field) helper =
+      case field of
+          Road car ->
+              
+
+          RoadEmpty ->
+
+
+          Tile ->
+
+
+          Empty ->
+
+
+updateCar : ( Point, Car ) -> Board -> ( Point, Car )
+updateCar ( coords, car ) board =
+    -- if car.moving then
+    --     { car | coords = nextCoords car.coords }
+    --
+    -- else
+    --     car
+    let
+        current =
+            Dict.get coords board
+
+        next =
+            Dict.get (nextCoords car.direction coords) board
+    in
+    case car.movement of
+        Animated ->
+            board
+
+        KeyInput ->
+            board
+
+
+
+-- isRoad : Point -> Bool
+-- isRoad point =
+--     List.member point roads
+---- VIEW ----
+-- fieldColor : Point -> Color.Color
+-- fieldColor point =
+--     if isRoad point then
+--         roadColor
+--
+--     else
+--         groundColor
+
+
+boardElement : Model -> Collage Msg
+boardElement model =
+    let
+        rg =
+            List.range 0 (boardSize - 1)
+
+        makeTile x y =
+            oneField (get ( x, y ) model.board)
+
+        col x =
+            vertical <|
+                List.map
+                    (makeTile x)
+                    rg
+    in
+    horizontal <|
+        List.map col rg
+
+
+get : Point -> Board -> Field
+get coords board =
+    case
+        Dict.get coords board
+    of
+        Just bruh ->
+            bruh
+
+        Nothing ->
+            Empty
+
+
+oneField : Field -> Collage Msg
+oneField field =
+    let
+        border =
+            solid thin <| uniform black
+
+        ground color =
+            rectangle blockSize blockSize
+                |> styled ( uniform color, border )
+    in
+    case field of
+        Road car ->
+            stack [ carElement car, ground roadColor ]
+
+        RoadEmpty ->
+            ground roadColor
+
+        Tile ->
+            ground tileColor
+
+        Empty ->
+            ground yellow
+
+
+carElement : Car -> Collage msg
+carElement car =
+    let
+        rotationRadians =
+            case car.direction of
+                Up ->
+                    0
+
+                Right ->
+                    270
+
+                Down ->
+                    180
+
+                Left ->
+                    90
+
+        border =
+            solid thin <| uniform black
+
+        tri =
+            triangle (blockSize / 2)
+                |> styled ( uniform car.color, border )
+
+        -- Denotes direction
+        ln =
+            path [ ( 0, 0 - (blockSize / 2) ), ( 0, blockSize / 2 ) ]
+                |> traced (solid thin (uniform black))
+    in
+    stack [ ln, tri ]
+        |> Collage.rotate (degrees rotationRadians)
+
+
+
+-- moveCars : Maybe KeyboardEvent -> Cars -> Cars
+-- moveCars maybeEvent cars =
+--     Dict.map (\_ c -> moveCar maybeEvent c) cars
+--
+--
+-- moveCar : Maybe KeyboardEvent -> Car -> Car
+-- moveCar maybeEvent car =
+--     let
+--         nextCoord ( x, y ) key =
+--             case key of
+--                 Keyboard.Key.Up ->
+--                     ( x, y - 1 )
+--
+--                 Keyboard.Key.Right ->
+--                     ( x + 1, y )
+--
+--                 Keyboard.Key.Down ->
+--                     ( x, y + 1 )
+--
+--                 Keyboard.Key.Left ->
+--                     ( x - 1, y )
+--
+--                 _ ->
+--                     ( x, y )
+--
+--         newDir dir key =
+--             case key of
+--                 Keyboard.Key.Up ->
+--                     Up
+--
+--                 Keyboard.Key.Right ->
+--                     Right
+--
+--                 Keyboard.Key.Down ->
+--                     Down
+--
+--                 Keyboard.Key.Left ->
+--                     Left
+--
+--                 _ ->
+--                     dir
+--     in
+--     case maybeEvent of
+--         Just event ->
+--             if car.moving then
+--                 car
+--
+--             else
+--                 { car
+--                     | coords = nextCoord car.coords event.keyCode
+--                     , direction = newDir car.direction event.keyCode
+--                 }
+--
+--         Nothing ->
+--             car
+
+
+viewEvent : Maybe KeyboardEvent -> Element Msg
+viewEvent maybeEvent =
+    case maybeEvent of
+        Just event ->
+            case event.keyCode of
+                Keyboard.Key.Up ->
+                    el []
+                        (Element.text
+                            ("keyCode: UPPPP"
+                                ++ Debug.toString event.keyCode
+                            )
+                        )
+
+                Keyboard.Key.Down ->
+                    el []
+                        (Element.text
+                            ("keyCode: DOWN "
+                                ++ Debug.toString event.keyCode
+                            )
+                        )
+
+                _ ->
+                    el []
+                        (Element.text
+                            ("keyCode: "
+                                ++ Debug.toString event.keyCode
+                            )
+                        )
+
+        Nothing ->
+            el [] (Element.text "No event yet")
+
+
+view : Model -> Element Msg
+view model =
+    let
+        auticka =
+            Element.html (boardElement model |> svg)
+    in
+    column [ Element.width fill, Element.height fill ]
+        [ row
+            [ Element.height fill
+            , Element.width fill
+            , paddingXY 10 10
+            , centerX
+            , spacing 40
+            , Background.color (Element.rgb255 254 216 177)
+            , Element.htmlAttribute
+                (on "keydown" <|
+                    Json.map HandleKeyboardEvent decodeKeyboardEvent
+                )
+            , Element.htmlAttribute (tabindex 0)
+            ]
+            [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
+                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
+                , el
+                    [ alignTop
+                    , centerX
+                    , Font.size 50
+                    ]
+                    (viewEvent model.lastEvent)
+                , el [ centerX ] auticka
+                , Element.link buttonStyle
+                    { label = Element.text "Home"
+                    , url = "Home"
+                    }
+                ]
+            ]
         ]
-        ([ backgroundRectangle ]
-            ++ (List.filterMap identity <|
-                    List.map render renderComponents
-               )
-        )
 
 
-render : Component -> Maybe (Svg Msg)
-render zeComponent =
-    case zeComponent of
-        LocationComponent location styling ->
-            Just <|
-                Svg.circle
-                    [ cx <| String.fromInt location.x
-                    , cy <| String.fromInt location.y
-                    , r <| String.fromInt styling.radius
-                    , Svg.Attributes.fill styling.color
-                    ]
-                    []
+buttonStyle : List (Element.Attribute msg)
+buttonStyle =
+    [ Element.width (px 300)
+    , Background.color (Element.rgb255 57 124 213)
+    , Font.color (Element.rgb 1 1 1)
+    , paddingXY 14 10
 
-        AreaComponent zeX zeY zeWidth zeHeight styling ->
-            Just <|
-                Svg.rect
-                    [ x <| String.fromInt zeX
-                    , y <| String.fromInt zeY
-                    , Svg.Attributes.width <| String.fromInt zeWidth
-                    , Svg.Attributes.height <| String.fromInt zeHeight
-                    , Svg.Attributes.fill styling.color
-                    , rx "0"
-                    , ry "0"
-                    ]
-                    []
-
-        _ ->
-            Nothing
+    -- , style "margin-top" "10px"
+    -- , style "margin-left" "10px"
+    , Border.rounded 10
+    , Font.size 20
+    , Font.center
+    , centerX
+    ]
 
 
-isLocationOrAreaComponent : Component -> Bool
-isLocationOrAreaComponent component =
-    case component of
-        LocationComponent _ _ ->
-            True
-
-        AreaComponent _ _ _ _ _ ->
-            True
-
-        _ ->
-            False
+subs : Model -> Sub Msg
+subs _ =
+    onAnimationFrameDelta ((\dt -> dt / 1000) >> Tick)

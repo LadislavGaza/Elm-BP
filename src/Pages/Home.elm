@@ -52,7 +52,7 @@ view model =
                 , el [ alignTop, centerX, Font.size 50 ] (Element.text "Menu")
                 , Element.link buttonStyle
                     { label = Element.text "Level 1"
-                    , url = "Editor"
+                    , url = "Level"
                     }
                 , Element.link buttonStyle
                     { label = Element.text "Level 2"
