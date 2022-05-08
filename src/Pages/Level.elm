@@ -257,19 +257,15 @@ updateBoard board =
         funct k v =
             case v of
                 Road possibleCar ->
-                    if Dict.member k carFields then
-                        case get (nextCoords possibleCar.direction k) board of
-                            Road nextCar ->
-                                Just <| Road (rotateCar possibleCar)
+                    case get (nextCoords possibleCar.direction k) board of
+                        Road nextCar ->
+                            Just <| Road possibleCar
 
-                            RoadEmpty ->
-                                Just <| Road blackCar
+                        RoadEmpty ->
+                            Just <| RoadEmpty
 
-                            _ ->
-                                Just <| Road (rotateCar possibleCar)
-
-                    else
-                        Just <| Road possibleCar
+                        _ ->
+                            Just <| Road possibleCar
 
                 RoadEmpty ->
                     Just <| RoadEmpty
@@ -281,10 +277,30 @@ updateBoard board =
                     Just <| Empty
 
         _ =
-            Debug.log "cars :" carFields
+            Debug.log "carFields :" carFields
 
         _ =
             Debug.log "cars :" updatedCars
+
+        _ =
+            Debug.log "movedCars :" movedCars
+
+        takeCar ( point, field ) =
+            case field of
+                Road car ->
+                    ( point, car )
+
+                _ ->
+                    ( point, { movement = Animated, direction = Down, color = white } )
+
+        movedCars =
+            carFields
+                |> Dict.toList
+                |> List.map takeCar
+                |> List.map (updateCar board)
+
+        movedCarsDict =
+            Dict.fromList movedCars
 
         carFields =
             Dict.filter hasCar board
@@ -294,11 +310,36 @@ updateBoard board =
                 funct
                 board
 
-        helperDict =
-            {}
+        clear point field =
+            case field of
+                Road car ->
+                    RoadEmpty
+
+                RoadEmpty ->
+                    RoadEmpty
+
+                _ ->
+                    field
+
+        clearedBoard =
+            Dict.map clear board
     in
-    -- Dict.map (\_ c -> pomoc c) board helperDict
-    updatedCars
+    Dict.merge
+        (\key a -> Dict.insert key a)
+        (\key a b -> Dict.insert key b)
+        (\key b -> Dict.insert key b)
+        clearedBoard
+        movedCarsDict
+        Dict.empty
+
+
+
+-- moveCar : Point -> Point
+-- moveCar : comparable -> Field -> comparable1
+
+
+moveCar point field =
+    point
 
 
 rotateCar : Car -> Car
@@ -317,45 +358,18 @@ rotateCar car =
             { car | direction = Up }
 
 
-
--- Dict.map (\_ c -> updateCar c board) carFields
--- Dict.map hasCar board
--- pomoc : Point -> Field -> Board -> ( Point, Field )
--- pomoc point field board =
---     case field of
---         Road car ->
---             ( point, Tile )
---
---         RoadEmpty ->
---             ( point, Tile )
---
---         Tile ->
---             ( point, Tile )
---
---         Empty ->
---             ( point, Tile )
-
-
-updateCar : ( Point, Car ) -> Board -> ( Point, Car )
-updateCar ( coords, car ) board =
-    -- if car.moving then
-    --     { car | coords = nextCoords car.coords }
-    --
-    -- else
-    --     car
+updateCar : Board -> ( Point, Car ) -> ( Point, Field )
+updateCar board ( point, car ) =
     let
-        current =
-            Dict.get coords board
-
-        next =
-            Dict.get (nextCoords car.direction coords) board
+        uCoords =
+            nextCoords car.direction point
     in
-    case car.movement of
-        Animated ->
-            ( coords, car )
+    case get uCoords board of
+        RoadEmpty ->
+            ( uCoords, Road car )
 
-        KeyInput ->
-            ( coords, car )
+        _ ->
+            ( point, Road (rotateCar car) )
 
 
 
