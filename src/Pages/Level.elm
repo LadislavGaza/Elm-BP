@@ -78,16 +78,16 @@ initialBoard : Board
 initialBoard =
     Dict.fromList
         [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = green } )
-        , ( ( 0, 1 ), RoadEmpty )
-        , ( ( 0, 2 ), RoadEmpty )
+        , ( ( 0, 1 ), Tile )
+        , ( ( 0, 2 ), Tile )
         , ( ( 0, 3 ), Tile )
-        , ( ( 1, 0 ), Tile )
+        , ( ( 1, 0 ), RoadEmpty )
         , ( ( 1, 1 ), RoadEmpty )
         , ( ( 1, 2 ), RoadEmpty )
-        , ( ( 1, 3 ), RoadEmpty )
-        , ( ( 2, 0 ), RoadEmpty )
-        , ( ( 2, 1 ), RoadEmpty )
-        , ( ( 2, 2 ), Tile )
+        , ( ( 1, 3 ), Road { movement = Animated, direction = Right, color = red } )
+        , ( ( 2, 0 ), Tile )
+        , ( ( 2, 1 ), Tile )
+        , ( ( 2, 2 ), RoadEmpty )
         , ( ( 2, 3 ), Tile )
         , ( ( 3, 0 ), Tile )
         , ( ( 3, 1 ), Tile )
@@ -223,6 +223,16 @@ nextCoords dir ( x, y ) =
             ( x - 1, y )
 
 
+get : Point -> Board -> Field
+get coords board =
+    case Dict.Extra.find (\key _ -> key == coords) board of
+        Just ( _, tile ) ->
+            tile
+
+        Nothing ->
+            Empty
+
+
 updateBoard : Board -> Board
 updateBoard board =
     -- Dict.map (\_ c -> updateCar c) cars
@@ -241,35 +251,89 @@ updateBoard board =
                 Empty ->
                     False
 
+        blackCar =
+            { movement = Animated, direction = Right, color = black }
+
+        funct k v =
+            case v of
+                Road possibleCar ->
+                    if Dict.member k carFields then
+                        case get (nextCoords possibleCar.direction k) board of
+                            Road nextCar ->
+                                Just <| Road (rotateCar possibleCar)
+
+                            RoadEmpty ->
+                                Just <| Road blackCar
+
+                            _ ->
+                                Just <| Road (rotateCar possibleCar)
+
+                    else
+                        Just <| Road possibleCar
+
+                RoadEmpty ->
+                    Just <| RoadEmpty
+
+                Tile ->
+                    Just <| Tile
+
+                Empty ->
+                    Just <| Empty
+
+        _ =
+            Debug.log "cars :" carFields
+
+        _ =
+            Debug.log "cars :" updatedCars
+
         carFields =
             Dict.filter hasCar board
 
-        -- updatedCars =
-        --     Dict.map (updateCar carFields) board
+        updatedCars =
+            Dict.Extra.filterMap
+                funct
+                board
+
         helperDict =
-          {}
+            {}
     in
-    Dict.map (\_ c -> pomoc c) board helperDict
+    -- Dict.map (\_ c -> pomoc c) board helperDict
+    updatedCars
+
+
+rotateCar : Car -> Car
+rotateCar car =
+    case car.direction of
+        Up ->
+            { car | direction = Right }
+
+        Right ->
+            { car | direction = Down }
+
+        Down ->
+            { car | direction = Left }
+
+        Left ->
+            { car | direction = Up }
 
 
 
 -- Dict.map (\_ c -> updateCar c board) carFields
 -- Dict.map hasCar board
-
-
-pomoc : (Point, Field) -> Board -> Board
-pomoc (point, field) helper =
-      case field of
-          Road car ->
-              
-
-          RoadEmpty ->
-
-
-          Tile ->
-
-
-          Empty ->
+-- pomoc : Point -> Field -> Board -> ( Point, Field )
+-- pomoc point field board =
+--     case field of
+--         Road car ->
+--             ( point, Tile )
+--
+--         RoadEmpty ->
+--             ( point, Tile )
+--
+--         Tile ->
+--             ( point, Tile )
+--
+--         Empty ->
+--             ( point, Tile )
 
 
 updateCar : ( Point, Car ) -> Board -> ( Point, Car )
@@ -288,10 +352,10 @@ updateCar ( coords, car ) board =
     in
     case car.movement of
         Animated ->
-            board
+            ( coords, car )
 
         KeyInput ->
-            board
+            ( coords, car )
 
 
 
@@ -327,16 +391,17 @@ boardElement model =
         List.map col rg
 
 
-get : Point -> Board -> Field
-get coords board =
-    case
-        Dict.get coords board
-    of
-        Just bruh ->
-            bruh
 
-        Nothing ->
-            Empty
+-- get : Point -> Board -> Field
+-- get coords board =
+--     case
+--         Dict.get coords board
+--     of
+--         Just bruh ->
+--             bruh
+--
+--         Nothing ->
+--             Empty
 
 
 oneField : Field -> Collage Msg
