@@ -92,7 +92,7 @@ initialBoard =
         , ( ( 3, 0 ), Tile )
         , ( ( 3, 1 ), Tile )
         , ( ( 3, 2 ), RoadEmpty )
-        , ( ( 3, 3 ), RoadEmpty )
+        , ( ( 3, 3 ), Road { movement = KeyInput, direction = Right, color = red } )
         ]
 
 
@@ -166,8 +166,7 @@ update msg model =
         HandleKeyboardEvent event ->
             ( { model
                 | lastEvent = Just event
-
-                -- , cars = moveCars (Just event) model.cars
+                , board = moveCars (Just event) model.board
               }
             , Cmd.none
             )
@@ -275,16 +274,23 @@ updateBoard board =
         helperMovedCars =
             Dict.foldl
                 (\key value acc ->
-                    if Dict.member (nextCoords value.direction key) acc then
-                        Dict.insert key (Road (rotateCar value)) acc
-
-                    else
-                        case get (nextCoords value.direction key) board of
-                            RoadEmpty ->
-                                Dict.insert (nextCoords value.direction key) (Road value) acc
-
-                            _ ->
+                    case value.movement of
+                        Animated ->
+                            if Dict.member (nextCoords value.direction key) acc then
                                 Dict.insert key (Road (rotateCar value)) acc
+
+                            else
+                                case get (nextCoords value.direction key) board of
+                                    RoadEmpty ->
+                                        Dict.insert (nextCoords value.direction key) (Road value) acc
+
+                                    _ ->
+                                        Dict.insert key
+                                            (Road (rotateCar value))
+                                            acc
+
+                        KeyInput ->
+                            Dict.insert key (Road value) acc
                 )
                 Dict.empty
                 helperCarFieldsDict
@@ -326,21 +332,6 @@ rotateCar car =
 
         Left ->
             { car | direction = Up }
-
-
-
--- updateCar : Board -> ( Point, Car ) -> ( Point, Field )
--- updateCar board ( point, car ) =
---     let
---         uCoords =
---             nextCoords car.direction point
---     in
---     case get uCoords board of
---         RoadEmpty ->
---             ( uCoords, Road car )
---
---         _ ->
---             ( point, Road (rotateCar car) )
 
 
 boardElement : Model -> Collage Msg
@@ -432,10 +423,297 @@ carElement car =
         |> Collage.rotate (degrees rotationRadians)
 
 
+moveCars : Maybe KeyboardEvent -> Board -> Board
+moveCars maybeEvent board =
+    let
+        hasCar point field =
+            case field of
+                Road possibleCar ->
+                    True
 
--- moveCars : Maybe KeyboardEvent -> Cars -> Cars
--- moveCars maybeEvent cars =
---     Dict.map (\_ c -> moveCar maybeEvent c) cars
+                RoadEmpty ->
+                    False
+
+                Tile ->
+                    False
+
+                Empty ->
+                    False
+
+        hasMovableCar point field =
+            case field of
+                Road possibleCar ->
+                    case possibleCar.movement of
+                        Animated ->
+                            False
+
+                        KeyInput ->
+                            True
+
+                RoadEmpty ->
+                    False
+
+                Tile ->
+                    False
+
+                Empty ->
+                    False
+
+        blackCar =
+            { movement = Animated, direction = Right, color = black }
+
+        takeCar ( point, field ) =
+            case field of
+                Road car ->
+                    ( point, car )
+
+                _ ->
+                    ( point, { movement = Animated, direction = Down, color = white } )
+
+        nextCoordsKey ( x, y ) key =
+            case key of
+                Keyboard.Key.Up ->
+                    ( x, y - 1 )
+
+                Keyboard.Key.Right ->
+                    ( x + 1, y )
+
+                Keyboard.Key.Down ->
+                    ( x, y + 1 )
+
+                Keyboard.Key.Left ->
+                    ( x - 1, y )
+
+                _ ->
+                    ( x, y )
+
+        newDir dir key =
+            case key of
+                Keyboard.Key.Up ->
+                    Up
+
+                Keyboard.Key.Right ->
+                    Right
+
+                Keyboard.Key.Down ->
+                    Down
+
+                Keyboard.Key.Left ->
+                    Left
+
+                _ ->
+                    dir
+
+        carFields =
+            Dict.filter hasCar board
+
+        _ =
+            Debug.log "movableCars :" carFields
+
+        helperCarFields =
+            carFields
+                |> Dict.toList
+                |> List.map takeCar
+
+        helperCarFieldsDict =
+            Dict.fromList helperCarFields
+
+        helperMovedCars =
+            Dict.foldl
+                (\key value acc ->
+                    case value.movement of
+                        Animated ->
+                            Dict.insert key (Road value) acc
+
+                        KeyInput ->
+                            case maybeEvent of
+                                Just event ->
+                                    case get (nextCoordsKey key event.keyCode) board of
+                                        RoadEmpty ->
+                                            Dict.insert (nextCoordsKey key event.keyCode) (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = yellow }) acc
+
+                                        _ ->
+                                            Dict.insert key (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = value.color }) acc
+
+                                Nothing ->
+                                    Dict.insert key (Road value) acc
+                )
+                Dict.empty
+                helperCarFieldsDict
+
+        -- helperAllAnimated =
+        --     Dict.foldl
+        --         (\key value acc ->
+        --             -- Dict.insert key (Road { movement = Animated, direction = value.direction, color = value.color }) acc
+        --             case maybeEvent of
+        --                 Just event ->
+        --                     case get (nextCoordsKey key event.keyCode) board of
+        --                         Road car ->
+        --                             Dict.insert (nextCoordsKey key event.keyCode) (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = value.color }) acc
+        --
+        --                         _ ->
+        --                             Dict.insert key (Road { movement = Animated, direction = value.direction, color = white }) acc
+        --
+        --                 Nothing ->
+        --                     Dict.insert key (Road value) acc
+        --         )
+        --         Dict.empty
+        --         helperCarFieldsDict
+        helperAllAnimated =
+            Dict.foldl
+                (\key value acc ->
+                    -- Dict.insert key (Road { movement = Animated, direction = value.direction, color = value.color }) acc
+                    Dict.insert key (Road { movement = Animated, direction = value.direction, color = value.color }) acc
+                )
+                Dict.empty
+                helperCarFieldsDict
+
+        insorted =
+            case maybeEvent of
+                Just event ->
+                    case event.keyCode of
+                        Keyboard.Key.Up ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                                _ ->
+                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                        Keyboard.Key.Right ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                                _ ->
+                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                        Keyboard.Key.Down ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                                _ ->
+                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                        Keyboard.Key.Left ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                                _ ->
+                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                        _ ->
+                            Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                Nothing ->
+                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+        _ =
+            Debug.log "helperAllAnimated :" helperAllAnimated
+
+        movableCarField =
+            Dict.filter hasMovableCar board
+
+        justMovableCar =
+            carFields
+                |> Dict.toList
+                |> List.map takeCar
+                |> List.head
+
+        justJustMovableCar =
+            case justMovableCar of
+                Just ( point, car ) ->
+                    ( point, car )
+
+                Nothing ->
+                    ( ( 10, 10 ), blackCar )
+
+        _ =
+            Debug.log "justMovableCar :" justMovableCar
+
+        _ =
+            Debug.log "insorted:" insorted
+
+        finalFinal =
+            case maybeEvent of
+                Just event ->
+                    case event.keyCode of
+                        Keyboard.Key.Up ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    insorted
+
+                                _ ->
+                                    helperMovedCars
+
+                        Keyboard.Key.Right ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    insorted
+
+                                _ ->
+                                    helperMovedCars
+
+                        Keyboard.Key.Down ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    insorted
+
+                                _ ->
+                                    helperMovedCars
+
+                        Keyboard.Key.Left ->
+                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
+                                Road car ->
+                                    insorted
+
+                                _ ->
+                                    helperMovedCars
+
+                        _ ->
+                            carFields
+
+                Nothing ->
+                    carFields
+
+        clear point field =
+            case field of
+                Road car ->
+                    RoadEmpty
+
+                RoadEmpty ->
+                    RoadEmpty
+
+                _ ->
+                    field
+
+        clearedBoard =
+            Dict.map clear board
+    in
+    Dict.merge
+        (\key a -> Dict.insert key a)
+        (\key a b -> Dict.insert key b)
+        (\key b -> Dict.insert key b)
+        clearedBoard
+        finalFinal
+        Dict.empty
+
+
+
+-- updateCar : Board -> ( Point, Car ) -> ( Point, Field )
+-- updateCar board ( point, car ) =
+--     let
+--         uCoords =
+--             nextCoords car.direction point
+--     in
+--     case get uCoords board of
+--         RoadEmpty ->
+--             ( uCoords, Road car )
+--
+--         _ ->
+--             ( point, Road (rotateCar car) )
 --
 --
 -- moveCar : Maybe KeyboardEvent -> Car -> Car
