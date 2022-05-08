@@ -71,34 +71,29 @@ type alias Car =
 
 
 type alias Board =
-    { boardItself : Dict Point Field
-    , alreadyTaken : List Point
-    }
+    Dict Point Field
 
 
 initialBoard : Board
 initialBoard =
-    { boardItself =
-        Dict.fromList
-            [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = green } )
-            , ( ( 0, 1 ), Tile )
-            , ( ( 0, 2 ), Tile )
-            , ( ( 0, 3 ), Tile )
-            , ( ( 1, 0 ), RoadEmpty )
-            , ( ( 1, 1 ), RoadEmpty )
-            , ( ( 1, 2 ), RoadEmpty )
-            , ( ( 1, 3 ), Road { movement = Animated, direction = Right, color = red } )
-            , ( ( 2, 0 ), Tile )
-            , ( ( 2, 1 ), Tile )
-            , ( ( 2, 2 ), RoadEmpty )
-            , ( ( 2, 3 ), Tile )
-            , ( ( 3, 0 ), Tile )
-            , ( ( 3, 1 ), Tile )
-            , ( ( 3, 2 ), RoadEmpty )
-            , ( ( 3, 3 ), RoadEmpty )
-            ]
-    , alreadyTaken = []
-    }
+    Dict.fromList
+        [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = green } )
+        , ( ( 0, 1 ), Tile )
+        , ( ( 0, 2 ), Tile )
+        , ( ( 0, 3 ), Tile )
+        , ( ( 1, 0 ), RoadEmpty )
+        , ( ( 1, 1 ), RoadEmpty )
+        , ( ( 1, 2 ), RoadEmpty )
+        , ( ( 1, 3 ), Road { movement = Animated, direction = Right, color = red } )
+        , ( ( 2, 0 ), Tile )
+        , ( ( 2, 1 ), Tile )
+        , ( ( 2, 2 ), RoadEmpty )
+        , ( ( 2, 3 ), Tile )
+        , ( ( 3, 0 ), Tile )
+        , ( ( 3, 1 ), Tile )
+        , ( ( 3, 2 ), RoadEmpty )
+        , ( ( 3, 3 ), RoadEmpty )
+        ]
 
 
 boardSize =
@@ -230,7 +225,7 @@ nextCoords dir ( x, y ) =
 
 get : Point -> Board -> Field
 get coords board =
-    case Dict.Extra.find (\key _ -> key == coords) board.boardItself of
+    case Dict.Extra.find (\key _ -> key == coords) board of
         Just ( _, tile ) ->
             tile
 
@@ -256,38 +251,8 @@ updateBoard board =
                 Empty ->
                     False
 
-        blackCar =
-            { movement = Animated, direction = Right, color = black }
-
-        -- funct k v =
-        --     case v of
-        --         Road possibleCar ->
-        --             case get (nextCoords possibleCar.direction k) board of
-        --                 Road nextCar ->
-        --                     Just <| Road possibleCar
-        --
-        --                 RoadEmpty ->
-        --                     Just <| RoadEmpty
-        --
-        --                 _ ->
-        --                     Just <| Road possibleCar
-        --
-        --         RoadEmpty ->
-        --             Just <| RoadEmpty
-        --
-        --         Tile ->
-        --             Just <| Tile
-        --
-        --         Empty ->
-        --             Just <| Empty
-        -- _ =
-        --     Debug.log "carFields :" carFields
-        --
-        -- _ =
-        --     Debug.log "movedCars :" movedCars
-        --
-        -- _ =
-        --     Debug.log "alreadyTaken :" board.alreadyTaken
+        -- blackCar =
+        --     { movement = Animated, direction = Right, color = black }
         takeCar ( point, field ) =
             case field of
                 Road car ->
@@ -297,16 +262,7 @@ updateBoard board =
                     ( point, { movement = Animated, direction = Down, color = white } )
 
         carFields =
-            Dict.filter hasCar board.boardItself
-
-        movedCars =
-            carFields
-                |> Dict.toList
-                |> List.map takeCar
-                |> List.map (updateCar board)
-
-        movedCarsDict =
-            Dict.fromList movedCars
+            Dict.filter hasCar board
 
         helperCarFields =
             carFields
@@ -333,10 +289,6 @@ updateBoard board =
                 Dict.empty
                 helperCarFieldsDict
 
-        -- updatedCars =
-        -- Dict.Extra.filterMap
-        --     funct
-        --     board.boardItself
         clear point field =
             case field of
                 Road car ->
@@ -349,27 +301,15 @@ updateBoard board =
                     field
 
         clearedBoard =
-            Dict.map clear board.boardItself
+            Dict.map clear board
     in
-    { boardItself =
-        Dict.merge
-            (\key a -> Dict.insert key a)
-            (\key a b -> Dict.insert key b)
-            (\key b -> Dict.insert key b)
-            clearedBoard
-            helperMovedCars
-            Dict.empty
-    , alreadyTaken = []
-    }
-
-
-
--- moveCar : Point -> Point
--- moveCar : comparable -> Field -> comparable1
-
-
-moveCar point field =
-    point
+    Dict.merge
+        (\key a -> Dict.insert key a)
+        (\key a b -> Dict.insert key b)
+        (\key b -> Dict.insert key b)
+        clearedBoard
+        helperMovedCars
+        Dict.empty
 
 
 rotateCar : Car -> Car
@@ -388,32 +328,19 @@ rotateCar car =
             { car | direction = Up }
 
 
-updateCar : Board -> ( Point, Car ) -> ( Point, Field )
-updateCar board ( point, car ) =
-    let
-        uCoords =
-            nextCoords car.direction point
-    in
-    case get uCoords board of
-        RoadEmpty ->
-            ( uCoords, Road car )
 
-        _ ->
-            ( point, Road (rotateCar car) )
-
-
-
--- isRoad : Point -> Bool
--- isRoad point =
---     List.member point roads
----- VIEW ----
--- fieldColor : Point -> Color.Color
--- fieldColor point =
---     if isRoad point then
---         roadColor
+-- updateCar : Board -> ( Point, Car ) -> ( Point, Field )
+-- updateCar board ( point, car ) =
+--     let
+--         uCoords =
+--             nextCoords car.direction point
+--     in
+--     case get uCoords board of
+--         RoadEmpty ->
+--             ( uCoords, Road car )
 --
---     else
---         groundColor
+--         _ ->
+--             ( point, Road (rotateCar car) )
 
 
 boardElement : Model -> Collage Msg
