@@ -77,7 +77,7 @@ type alias Board =
 initialBoard : Board
 initialBoard =
     Dict.fromList
-        [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = green } )
+        [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = red } )
         , ( ( 0, 1 ), Tile )
         , ( ( 0, 2 ), Tile )
         , ( ( 0, 3 ), Tile )
@@ -92,7 +92,7 @@ initialBoard =
         , ( ( 3, 0 ), Tile )
         , ( ( 3, 1 ), Tile )
         , ( ( 3, 2 ), RoadEmpty )
-        , ( ( 3, 3 ), Road { movement = KeyInput, direction = Right, color = red } )
+        , ( ( 3, 3 ), Road { movement = KeyInput, direction = Right, color = green } )
         ]
 
 
@@ -530,7 +530,7 @@ moveCars maybeEvent board =
                                 Just event ->
                                     case get (nextCoordsKey key event.keyCode) board of
                                         RoadEmpty ->
-                                            Dict.insert (nextCoordsKey key event.keyCode) (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = yellow }) acc
+                                            Dict.insert (nextCoordsKey key event.keyCode) (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = green }) acc
 
                                         _ ->
                                             Dict.insert key (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = value.color }) acc
@@ -563,7 +563,7 @@ moveCars maybeEvent board =
             Dict.foldl
                 (\key value acc ->
                     -- Dict.insert key (Road { movement = Animated, direction = value.direction, color = value.color }) acc
-                    Dict.insert key (Road { movement = Animated, direction = value.direction, color = value.color }) acc
+                    Dict.insert key (Road { movement = Animated, direction = value.direction, color = red }) acc
                 )
                 Dict.empty
                 helperCarFieldsDict
@@ -617,7 +617,7 @@ moveCars maybeEvent board =
             Dict.filter hasMovableCar board
 
         justMovableCar =
-            carFields
+            movableCarField
                 |> Dict.toList
                 |> List.map takeCar
                 |> List.head
@@ -625,7 +625,7 @@ moveCars maybeEvent board =
         justJustMovableCar =
             case justMovableCar of
                 Just ( point, car ) ->
-                    ( point, car )
+                    ( point, { movement = car.movement, direction = car.direction, color = green } )
 
                 Nothing ->
                     ( ( 10, 10 ), blackCar )
