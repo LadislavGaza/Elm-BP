@@ -61,7 +61,14 @@ update msg model =
         Jumps jumps ->
             let
                 newUser =
-                    { username = model.localUser.username, extraJumps = jumps }
+                    { username = model.localUser.username
+                    , extraJumps = jumps
+                    , extraGameSpeed = model.localUser.extraGameSpeed
+                    , extraDuration = model.localUser.extraDuration
+                    , level1HS = model.localUser.level1HS
+                    , level2HS = model.localUser.level2HS
+                    , level3HS = model.localUser.level3HS
+                    }
             in
             ( { model | localUser = newUser }, Cmd.none )
 

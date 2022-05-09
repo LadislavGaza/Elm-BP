@@ -59,6 +59,11 @@ unknownUser : User
 unknownUser =
     { username = "Player"
     , extraJumps = 0
+    , extraGameSpeed = 0
+    , extraDuration = 0
+    , level1HS = 0
+    , level2HS = 0
+    , level3HS = 0
     }
 
 
@@ -146,7 +151,14 @@ update message model =
 
                         newUser : User
                         newUser =
-                            { username = newChildModel.localUser.username, extraJumps = newChildModel.localUser.extraJumps }
+                            { username = newChildModel.localUser.username
+                            , extraJumps = newChildModel.localUser.extraJumps
+                            , extraGameSpeed = newChildModel.localUser.extraGameSpeed
+                            , extraDuration = newChildModel.localUser.extraDuration
+                            , level1HS = newChildModel.localUser.level1HS
+                            , level2HS = newChildModel.localUser.level2HS
+                            , level3HS = newChildModel.localUser.level3HS
+                            }
                     in
                     ( { newModel | user = newUser }, Cmd.batch [ newCmd, encodeUser newUser ] )
 
@@ -173,7 +185,26 @@ update message model =
         Level2Msg msg ->
             case model.page of
                 Level2 level2 ->
-                    stepLevel2 model (Pages.Level2.update msg level2)
+                    -- stepSettings model (Pages.Settings.update msg settings)
+                    let
+                        ( newChildModel, newChildCmd ) =
+                            Pages.Level2.update msg level2
+
+                        ( newModel, newCmd ) =
+                            stepLevel2 model ( newChildModel, newChildCmd )
+
+                        newUser : User
+                        newUser =
+                            { username = newChildModel.localUser.username
+                            , extraJumps = newChildModel.localUser.extraJumps
+                            , extraGameSpeed = newChildModel.localUser.extraGameSpeed
+                            , extraDuration = newChildModel.localUser.extraDuration
+                            , level1HS = newChildModel.localUser.level1HS
+                            , level2HS = newChildModel.localUser.level2HS
+                            , level3HS = newChildModel.localUser.level3HS
+                            }
+                    in
+                    ( { newModel | user = newUser }, Cmd.batch [ newCmd, encodeUser newUser ] )
 
                 _ ->
                     ( model, Cmd.none )
@@ -442,6 +473,11 @@ encodeUser user =
             Encode.object
                 [ ( "username", Encode.string user.username )
                 , ( "extraJumps", Encode.int user.extraJumps )
+                , ( "extraGameSpeed", Encode.int user.extraGameSpeed )
+                , ( "extraDuration", Encode.int user.extraDuration )
+                , ( "level1HS", Encode.int user.level1HS )
+                , ( "level2HS", Encode.int user.level2HS )
+                , ( "level3HS", Encode.int user.level3HS )
                 ]
     in
     Ports.storeUser json

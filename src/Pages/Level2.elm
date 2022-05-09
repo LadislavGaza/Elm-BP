@@ -142,8 +142,26 @@ update msg model =
                 maxTimeHelper =
                     model.maxTime
 
+                newMaxScore =
+                    10 + model.board.remainingJumps * 10
+
                 _ =
                     Debug.log "maxTime :" model.maxTime
+
+                newUser =
+                    { username = model.localUser.username
+                    , extraJumps = model.localUser.extraJumps
+                    , extraGameSpeed = model.localUser.extraGameSpeed
+                    , extraDuration = model.localUser.extraDuration
+                    , level1HS = model.localUser.level1HS
+                    , level2HS =
+                        if model.localUser.level2HS < newMaxScore then
+                            newMaxScore
+
+                        else
+                            model.localUser.level2HS
+                    , level3HS = model.localUser.level3HS
+                    }
             in
             ( { model
                 | board =
@@ -165,6 +183,12 @@ update msg model =
 
                     else
                         0
+                , localUser =
+                    if model.board.won == True then
+                        newUser
+
+                    else
+                        model.localUser
               }
             , Cmd.none
             )
