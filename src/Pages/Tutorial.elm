@@ -408,7 +408,7 @@ oneField : ( Point, Field ) -> Point -> Collage Msg
 oneField ( point, field ) winner =
     let
         border =
-            solid thin <| uniform black
+            solid verythin <| uniform black
 
         ground color =
             rectangle blockSize blockSize
@@ -452,21 +452,12 @@ carElement car =
 
                 Left ->
                     90
-
-        border =
-            solid thin <| uniform black
-
-        tri =
-            triangle (blockSize / 2)
-                |> styled ( uniform car.color, border )
-
-        -- Denotes direction
-        ln =
-            path [ ( 0, 0 - (blockSize / 2) ), ( 0, blockSize / 2 ) ]
-                |> traced (solid thin (uniform black))
     in
-    stack [ ln, tri ]
-        |> Collage.rotate (degrees rotationRadians)
+    if car.color == green then
+        Collage.image ( blockSize, blockSize ) "/car2.svg" |> Collage.rotate (degrees rotationRadians)
+
+    else
+        Collage.image ( blockSize, blockSize ) "/car1.svg" |> Collage.rotate (degrees rotationRadians)
 
 
 moveCars : Maybe KeyboardEvent -> Board -> Board

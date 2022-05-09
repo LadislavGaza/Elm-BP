@@ -18,7 +18,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
-import Html exposing (Attribute, Html, div, h1, h3, p, pre, text)
+import Html exposing (Attribute, Html, div, h1, h3, p, pre, text, th)
 import Html.Attributes exposing (autofocus, id, style, tabindex)
 import Html.Events exposing (on)
 import Json.Decode as Json exposing (..)
@@ -103,6 +103,10 @@ initialBoard =
             , ( ( 3, 1 ), Tile )
             , ( ( 3, 2 ), Road { movement = Animated, direction = Left, color = red } )
             , ( ( 3, 3 ), RoadEmpty )
+            , ( ( 4, 0 ), RoadEmpty )
+            , ( ( 4, 1 ), RoadEmpty )
+            , ( ( 4, 2 ), RoadEmpty )
+            , ( ( 4, 3 ), RoadEmpty )
             ]
     , remainingJumps = amountOfJumps
     , winningField = winningFieldPoint
@@ -110,7 +114,11 @@ initialBoard =
     }
 
 
-boardSize =
+boardSizeX =
+    5
+
+
+boardSizeY =
     4
 
 
@@ -139,12 +147,13 @@ type alias Model =
     , lastEvent : Maybe KeyboardEvent
     , time : Float
     , board : Board
+    , maxTime : Float
     }
 
 
 init : User -> ( Model, Cmd Msg )
 init user =
-    ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard }
+    ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard, maxTime = 10 }
     , Cmd.none
     )
 
@@ -180,7 +189,12 @@ update msg model =
         HandleKeyboardEvent event ->
             ( { model
                 | lastEvent = Just event
-                , board = moveCars (Just event) model.board
+                , board =
+                    if model.maxTime <= 0 then
+                        model.board
+
+                    else
+                        moveCars (Just event) model.board
               }
             , Cmd.none
             )
@@ -199,12 +213,18 @@ update msg model =
                 shouldUpdate =
                     secsPassed /= newSecs
 
+                maxTimeHelper =
+                    model.maxTime
+
                 _ =
-                    Debug.log "won :" model.board.won
+                    Debug.log "maxTime :" model.maxTime
             in
             ( { model
                 | board =
                     if model.board.won == True then
+                        model.board
+
+                    else if model.maxTime <= 0 then
                         model.board
 
                     else if shouldUpdate then
@@ -213,6 +233,12 @@ update msg model =
                     else
                         model.board
                 , time = newTime
+                , maxTime =
+                    if model.maxTime - dt > 0 then
+                        model.maxTime - dt
+
+                    else
+                        0
               }
             , Cmd.none
             )
@@ -371,9 +397,13 @@ rotateCar car =
 boardElement : Model -> Collage Msg
 boardElement model =
     let
-        rg =
+        rangeX =
             List.range 0
-                (boardSize - 1)
+                (boardSizeX - 1)
+
+        rangeY =
+            List.range 0
+                (boardSizeY - 1)
 
         oneFieldPoint ( x, y ) =
             getPointField ( x, y ) model.board
@@ -385,10 +415,10 @@ boardElement model =
             vertical <|
                 List.map
                     (makeTile x)
-                    rg
+                    rangeY
     in
     horizontal <|
-        List.map col rg
+        List.map col rangeX
 
 
 
@@ -408,7 +438,7 @@ oneField : ( Point, Field ) -> Point -> Collage Msg
 oneField ( point, field ) winner =
     let
         border =
-            solid thin <| uniform black
+            solid verythin <| uniform black
 
         ground color =
             rectangle blockSize blockSize
@@ -452,21 +482,12 @@ carElement car =
 
                 Left ->
                     90
-
-        border =
-            solid thin <| uniform black
-
-        tri =
-            triangle (blockSize / 2)
-                |> styled ( uniform car.color, border )
-
-        -- Denotes direction
-        ln =
-            path [ ( 0, 0 - (blockSize / 2) ), ( 0, blockSize / 2 ) ]
-                |> traced (solid thin (uniform black))
     in
-    stack [ ln, tri ]
-        |> Collage.rotate (degrees rotationRadians)
+    if car.color == green then
+        Collage.image ( blockSize, blockSize ) "/car2.svg" |> Collage.rotate (degrees rotationRadians)
+
+    else
+        Collage.image ( blockSize, blockSize ) "/car1.svg" |> Collage.rotate (degrees rotationRadians)
 
 
 moveCars : Maybe KeyboardEvent -> Board -> Board
@@ -930,14 +951,27 @@ view model =
             ]
             [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
                 [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
-                , el
-                    [ alignTop
-                    , centerX
-                    , Font.size 50
-                    ]
-                    (viewEvent model.lastEvent)
+                , if model.board.won then
+                    el
+                        [ alignTop
+                        , centerX
+                        , Font.size 30
+                        ]
+                        (Element.text "Vyhral si")
+
+                  else if model.maxTime <= 0 then
+                    el
+                        [ alignTop
+                        , centerX
+                        , Font.size 30
+                        ]
+                        (Element.text "Prehral si")
+
+                  else
+                    el [] (Element.text "")
                 , el [ centerX ] auticka
                 , el [ centerX ] (Element.text ("Remaning jumps:" ++ toString model.board.remainingJumps))
+                , el [ centerX ] (Element.text ("Remaning time:" ++ toString (round model.maxTime)))
                 , Element.link buttonStyle
                     { label = Element.text "Home"
                     , url = "Home"
