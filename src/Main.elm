@@ -19,9 +19,11 @@ import Json.Encode as Encode
 import Pages.Editor
 import Pages.HighScore
 import Pages.Home
-import Pages.Level
+import Pages.Level1
+import Pages.Level2
 import Pages.Login
 import Pages.Settings
+import Pages.Tutorial
 import Ports
 import Time
 import Url
@@ -36,7 +38,9 @@ type Page
     = Home Pages.Home.Model
     | Editor Pages.Editor.Model
     | HighScore Pages.HighScore.Model
-    | Level Pages.Level.Model
+    | Level1 Pages.Level1.Model
+    | Level2 Pages.Level2.Model
+    | Tutorial Pages.Tutorial.Model
       -- | Login Pages.Login.Model
     | Settings Pages.Settings.Model
     | Global
@@ -82,7 +86,9 @@ type Msg
     | HomeMsg Pages.Home.Msg
     | EditorMsg Pages.Editor.Msg
     | HighScoreMsg Pages.HighScore.Msg
-    | LevelMsg Pages.Level.Msg
+    | Level1Msg Pages.Level1.Msg
+    | Level2Msg Pages.Level2.Msg
+    | TutorialMsg Pages.Tutorial.Msg
       -- | LoginMsg Pages.Login.Msg
     | SettingsMsg Pages.Settings.Msg
     | PlayMe Time.Posix
@@ -144,10 +150,26 @@ update message model =
         --         _ ->
         --             ( model, Cmd.none )
         --
-        LevelMsg msg ->
+        Level1Msg msg ->
             case model.page of
-                Level level ->
-                    stepLevel model (Pages.Level.update msg level)
+                Level1 level1 ->
+                    stepLevel1 model (Pages.Level1.update msg level1)
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Level2Msg msg ->
+            case model.page of
+                Level2 level2 ->
+                    stepLevel2 model (Pages.Level2.update msg level2)
+
+                _ ->
+                    ( model, Cmd.none )
+
+        TutorialMsg msg ->
+            case model.page of
+                Tutorial tutorial ->
+                    stepTutorial model (Pages.Tutorial.update msg tutorial)
 
                 _ ->
                     ( model, Cmd.none )
@@ -167,7 +189,9 @@ stepUrl url model =
                 , route (s "Settings") (stepSettings model (Pages.Settings.init model.user))
 
                 -- , route (s "Login") (stepLogin model (Pages.Login.init model.user))
-                , route (s "Level") (stepLevel model (Pages.Level.init model.user))
+                , route (s "Level1") (stepLevel1 model (Pages.Level1.init model.user))
+                , route (s "Level2") (stepLevel2 model (Pages.Level2.init model.user))
+                , route (s "Tutorial") (stepTutorial model (Pages.Tutorial.init model.user))
                 ]
     in
     case Parser.parse parser url of
@@ -218,10 +242,24 @@ stepSettings model ( settings, cmds ) =
 --
 
 
-stepLevel : Model -> ( Pages.Level.Model, Cmd Pages.Level.Msg ) -> ( Model, Cmd Msg )
-stepLevel model ( level, cmds ) =
-    ( { model | page = Level level }
-    , Cmd.map LevelMsg cmds
+stepLevel1 : Model -> ( Pages.Level1.Model, Cmd Pages.Level1.Msg ) -> ( Model, Cmd Msg )
+stepLevel1 model ( level1, cmds ) =
+    ( { model | page = Level1 level1 }
+    , Cmd.map Level1Msg cmds
+    )
+
+
+stepLevel2 : Model -> ( Pages.Level2.Model, Cmd Pages.Level2.Msg ) -> ( Model, Cmd Msg )
+stepLevel2 model ( level2, cmds ) =
+    ( { model | page = Level2 level2 }
+    , Cmd.map Level2Msg cmds
+    )
+
+
+stepTutorial : Model -> ( Pages.Tutorial.Model, Cmd Pages.Tutorial.Msg ) -> ( Model, Cmd Msg )
+stepTutorial model ( tutorial, cmds ) =
+    ( { model | page = Tutorial tutorial }
+    , Cmd.map TutorialMsg cmds
     )
 
 
@@ -262,8 +300,14 @@ subscriptions model =
             -- Login loginModel ->
             --     Sub.none
             --
-            Level levelModel ->
-                Sub.map LevelMsg (Pages.Level.subs levelModel)
+            Level1 level1Model ->
+                Sub.map Level1Msg (Pages.Level1.subs level1Model)
+
+            Level2 level2Model ->
+                Sub.map Level2Msg (Pages.Level2.subs level2Model)
+
+            Tutorial tutorialModel ->
+                Sub.map TutorialMsg (Pages.Tutorial.subs tutorialModel)
 
             Global ->
                 Sub.none
@@ -305,8 +349,14 @@ searchView model =
         --
         -- Login loginModel ->
         --     Html.map LoginMsg (Pages.Login.view loginModel)
-        Level levelModel ->
-            Element.map LevelMsg (Pages.Level.view levelModel)
+        Level1 level1Model ->
+            Element.map Level1Msg (Pages.Level1.view level1Model)
+
+        Level2 level2Model ->
+            Element.map Level2Msg (Pages.Level2.view level2Model)
+
+        Tutorial tutorialModel ->
+            Element.map TutorialMsg (Pages.Tutorial.view tutorialModel)
 
         Global ->
             globalHomeView
@@ -320,12 +370,16 @@ globalHomeView =
                 [ Element.image [ alignTop, centerX, Element.height (px 150), width (px 150) ] { src = "/logo.svg", description = "nah" }
                 , el [ alignTop, centerX, Font.size 50 ] (Element.text "Menu")
                 , Element.link buttonStyle
+                    { label = Element.text "Tutorial"
+                    , url = "Tutorial"
+                    }
+                , Element.link buttonStyle
                     { label = Element.text "Level 1"
-                    , url = "Level"
+                    , url = "Level1"
                     }
                 , Element.link buttonStyle
                     { label = Element.text "Level 2"
-                    , url = "Nic"
+                    , url = "Level2"
                     }
                 , Element.link buttonStyle
                     { label = Element.text "Settings"

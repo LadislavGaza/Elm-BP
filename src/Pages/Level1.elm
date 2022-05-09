@@ -1,4 +1,4 @@
-module Pages.Level exposing (..)
+module Pages.Level1 exposing (..)
 
 import Browser exposing (element)
 import Browser.Dom as Dom
@@ -19,7 +19,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
 import Html exposing (Attribute, Html, div, h1, h3, p, pre, text)
-import Html.Attributes exposing (id, style, tabindex)
+import Html.Attributes exposing (autofocus, id, style, tabindex)
 import Html.Events exposing (on)
 import Json.Decode as Json exposing (..)
 import Json.Encode as Encode exposing (..)
@@ -926,6 +926,7 @@ view model =
                     Json.map HandleKeyboardEvent decodeKeyboardEvent
                 )
             , Element.htmlAttribute (tabindex 0)
+            , Element.htmlAttribute (autofocus True)
             ]
             [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
                 [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
