@@ -65,35 +65,42 @@ type alias Car =
     }
 
 
+amountOfJumps =
+    5
+
+
 
 -- type alias Cars =
 --     List Car
 
 
 type alias Board =
-    Dict Point Field
+    { boardItself : Dict Point Field, remainingJumps : Int }
 
 
 initialBoard : Board
 initialBoard =
-    Dict.fromList
-        [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = red } )
-        , ( ( 0, 1 ), Tile )
-        , ( ( 0, 2 ), Tile )
-        , ( ( 0, 3 ), Tile )
-        , ( ( 1, 0 ), RoadEmpty )
-        , ( ( 1, 1 ), RoadEmpty )
-        , ( ( 1, 2 ), RoadEmpty )
-        , ( ( 1, 3 ), Road { movement = Animated, direction = Right, color = red } )
-        , ( ( 2, 0 ), Tile )
-        , ( ( 2, 1 ), Tile )
-        , ( ( 2, 2 ), RoadEmpty )
-        , ( ( 2, 3 ), Tile )
-        , ( ( 3, 0 ), Tile )
-        , ( ( 3, 1 ), Tile )
-        , ( ( 3, 2 ), RoadEmpty )
-        , ( ( 3, 3 ), Road { movement = KeyInput, direction = Right, color = green } )
-        ]
+    { boardItself =
+        Dict.fromList
+            [ ( ( 0, 0 ), Road { movement = Animated, direction = Right, color = red } )
+            , ( ( 0, 1 ), Tile )
+            , ( ( 0, 2 ), Tile )
+            , ( ( 0, 3 ), Tile )
+            , ( ( 1, 0 ), RoadEmpty )
+            , ( ( 1, 1 ), RoadEmpty )
+            , ( ( 1, 2 ), RoadEmpty )
+            , ( ( 1, 3 ), Road { movement = Animated, direction = Right, color = red } )
+            , ( ( 2, 0 ), Tile )
+            , ( ( 2, 1 ), Tile )
+            , ( ( 2, 2 ), RoadEmpty )
+            , ( ( 2, 3 ), Tile )
+            , ( ( 3, 0 ), Tile )
+            , ( ( 3, 1 ), Tile )
+            , ( ( 3, 2 ), RoadEmpty )
+            , ( ( 3, 3 ), Road { movement = KeyInput, direction = Right, color = green } )
+            ]
+    , remainingJumps = amountOfJumps
+    }
 
 
 boardSize =
@@ -224,7 +231,7 @@ nextCoords dir ( x, y ) =
 
 get : Point -> Board -> Field
 get coords board =
-    case Dict.Extra.find (\key _ -> key == coords) board of
+    case Dict.Extra.find (\key _ -> key == coords) board.boardItself of
         Just ( _, tile ) ->
             tile
 
@@ -261,7 +268,7 @@ updateBoard board =
                     ( point, { movement = Animated, direction = Down, color = white } )
 
         carFields =
-            Dict.filter hasCar board
+            Dict.filter hasCar board.boardItself
 
         helperCarFields =
             carFields
@@ -307,15 +314,19 @@ updateBoard board =
                     field
 
         clearedBoard =
-            Dict.map clear board
+            Dict.map clear board.boardItself
     in
-    Dict.merge
-        (\key a -> Dict.insert key a)
-        (\key a b -> Dict.insert key b)
-        (\key b -> Dict.insert key b)
-        clearedBoard
-        helperMovedCars
-        Dict.empty
+    { board
+        | boardItself =
+            Dict.merge
+                (\key a -> Dict.insert key a)
+                (\key a b -> Dict.insert key b)
+                (\key b -> Dict.insert key b)
+                clearedBoard
+                helperMovedCars
+                Dict.empty
+        , remainingJumps = board.remainingJumps
+    }
 
 
 rotateCar : Car -> Car
@@ -505,7 +516,7 @@ moveCars maybeEvent board =
                     dir
 
         carFields =
-            Dict.filter hasCar board
+            Dict.filter hasCar board.boardItself
 
         _ =
             Debug.log "movableCars :" carFields
@@ -614,7 +625,7 @@ moveCars maybeEvent board =
             Debug.log "helperAllAnimated :" helperAllAnimated
 
         movableCarField =
-            Dict.filter hasMovableCar board
+            Dict.filter hasMovableCar board.boardItself
 
         justMovableCar =
             movableCarField
@@ -634,7 +645,8 @@ moveCars maybeEvent board =
             Debug.log "justMovableCar :" justMovableCar
 
         _ =
-            Debug.log "insorted:" insorted
+            Debug.log "insorted:"
+                insorted
 
         finalFinal =
             case maybeEvent of
@@ -643,40 +655,56 @@ moveCars maybeEvent board =
                         Keyboard.Key.Up ->
                             case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
                                 Road car ->
-                                    insorted
+                                    if board.remainingJumps > 0 then
+                                        ( insorted, board.remainingJumps - 1 )
+
+                                    else
+                                        ( helperMovedCars, board.remainingJumps )
 
                                 _ ->
-                                    helperMovedCars
+                                    ( helperMovedCars, board.remainingJumps )
 
                         Keyboard.Key.Right ->
                             case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
                                 Road car ->
-                                    insorted
+                                    if board.remainingJumps > 0 then
+                                        ( insorted, board.remainingJumps - 1 )
+
+                                    else
+                                        ( helperMovedCars, board.remainingJumps )
 
                                 _ ->
-                                    helperMovedCars
+                                    ( helperMovedCars, board.remainingJumps )
 
                         Keyboard.Key.Down ->
                             case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
                                 Road car ->
-                                    insorted
+                                    if board.remainingJumps > 0 then
+                                        ( insorted, board.remainingJumps - 1 )
+
+                                    else
+                                        ( helperMovedCars, board.remainingJumps )
 
                                 _ ->
-                                    helperMovedCars
+                                    ( helperMovedCars, board.remainingJumps )
 
                         Keyboard.Key.Left ->
                             case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
                                 Road car ->
-                                    insorted
+                                    if board.remainingJumps > 0 then
+                                        ( insorted, board.remainingJumps - 1 )
+
+                                    else
+                                        ( helperMovedCars, board.remainingJumps )
 
                                 _ ->
-                                    helperMovedCars
+                                    ( helperMovedCars, board.remainingJumps )
 
                         _ ->
-                            carFields
+                            ( carFields, board.remainingJumps )
 
                 Nothing ->
-                    carFields
+                    ( carFields, board.remainingJumps )
 
         clear point field =
             case field of
@@ -690,15 +718,19 @@ moveCars maybeEvent board =
                     field
 
         clearedBoard =
-            Dict.map clear board
+            Dict.map clear board.boardItself
     in
-    Dict.merge
-        (\key a -> Dict.insert key a)
-        (\key a b -> Dict.insert key b)
-        (\key b -> Dict.insert key b)
-        clearedBoard
-        finalFinal
-        Dict.empty
+    { board
+        | boardItself =
+            Dict.merge
+                (\key a -> Dict.insert key a)
+                (\key a b -> Dict.insert key b)
+                (\key b -> Dict.insert key b)
+                clearedBoard
+                (Tuple.first finalFinal)
+                Dict.empty
+        , remainingJumps = Tuple.second finalFinal
+    }
 
 
 
@@ -830,6 +862,7 @@ view model =
                     ]
                     (viewEvent model.lastEvent)
                 , el [ centerX ] auticka
+                , el [ centerX ] (Element.text ("Remaning jumps:" ++ toString model.board.remainingJumps))
                 , Element.link buttonStyle
                     { label = Element.text "Home"
                     , url = "Home"
