@@ -500,9 +500,6 @@ moveCars maybeEvent board =
         carFields =
             Dict.filter hasCar board.boardItself
 
-        _ =
-            Debug.log "movableCars :" carFields
-
         helperCarFields =
             carFields
                 |> Dict.toList
@@ -808,29 +805,33 @@ view model =
             , Element.htmlAttribute (tabindex 0)
             , Element.htmlAttribute (autofocus True)
             ]
-            [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
+            [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 50 ]
                 [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
+                , el [ alignTop, centerX ] auticka
+                , el [ alignTop, centerX ] (Element.text ("Remaning jumps:" ++ toString model.board.remainingJumps))
+                , el [ alignTop, centerX ] (Element.text ("Remaning time:" ++ toString (round model.maxTime)))
                 , if model.board.won then
                     el
                         [ alignTop
                         , centerX
-                        , Font.size 30
+                        , Font.size 50
+                        , Font.bold
+                        , Font.color (Element.rgb 0 1 0)
                         ]
-                        (Element.text "Vyhral si")
+                        (Element.text "Vyhral si!")
 
                   else if model.maxTime <= 0 then
                     el
                         [ alignTop
                         , centerX
-                        , Font.size 30
+                        , Font.size 50
+                        , Font.bold
+                        , Font.color (Element.rgb 1 0 0)
                         ]
-                        (Element.text "Prehral si")
+                        (Element.text "Prehral si!")
 
                   else
                     el [] (Element.text "")
-                , el [ centerX ] auticka
-                , el [ centerX ] (Element.text ("Remaning jumps:" ++ toString model.board.remainingJumps))
-                , el [ centerX ] (Element.text ("Remaning time:" ++ toString (round model.maxTime)))
                 , Element.link buttonStyle
                     { label = Element.text "Home"
                     , url = "Home"

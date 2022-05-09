@@ -7,7 +7,7 @@ import Dict.Extra as Extra
 
 type alias User =
     { username : String
-    , level : Int
+    , extraJumps : Int
     }
 
 

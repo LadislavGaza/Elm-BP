@@ -2,7 +2,7 @@ import './main.css';
 import { Elm } from './Main.elm';
 import * as serviceWorker from './serviceWorker';
 
-var storedState = localStorage.getItem('__myUser__');
+var storedState = localStorage.getItem('user');
 var startingState = storedState ? JSON.parse(storedState) : null;
 
 var app = Elm.Main.init({
@@ -10,10 +10,10 @@ var app = Elm.Main.init({
   flags: startingState
 });
 
-// app.ports.storeUser.subscribe(function (user) {
-// 	var postsJson = JSON.stringify(user);
-//     localStorage.setItem('__myUser__', postsJson);
-// });
+app.ports.storeUser.subscribe(function (user) {
+	var postsJson = JSON.stringify(user);
+    localStorage.setItem('user', postsJson);
+});
 
 // app.ports.play.subscribe(function (data) {
 //           var x = document.getElementById("game-song");

@@ -58,7 +58,7 @@ type alias Model =
 unknownUser : User
 unknownUser =
     { username = "Player"
-    , level = 1
+    , extraJumps = 0
     }
 
 
@@ -136,7 +136,19 @@ update message model =
         SettingsMsg msg ->
             case model.page of
                 Settings settings ->
-                    stepSettings model (Pages.Settings.update msg settings)
+                    -- stepSettings model (Pages.Settings.update msg settings)
+                    let
+                        ( newChildModel, newChildCmd ) =
+                            Pages.Settings.update msg settings
+
+                        ( newModel, newCmd ) =
+                            stepSettings model ( newChildModel, newChildCmd )
+
+                        newUser : User
+                        newUser =
+                            { username = newChildModel.localUser.username, extraJumps = newChildModel.localUser.extraJumps }
+                    in
+                    ( { newModel | user = newUser }, Cmd.batch [ newCmd, encodeUser newUser ] )
 
                 _ ->
                     ( model, Cmd.none )
@@ -294,7 +306,7 @@ subscriptions model =
                 Sub.none
 
             Settings settingsModel ->
-                Sub.map SettingsMsg (Pages.Settings.subs settingsModel)
+                Sub.none
 
             --
             -- Login loginModel ->
@@ -367,7 +379,7 @@ globalHomeView =
     column [ width fill, Element.height fill ]
         [ row [ Element.height fill, width fill, paddingXY 10 10, centerX, spacing 30, Background.color (rgb255 254 216 177) ]
             [ column [ alignLeft, alignTop, centerX, Element.height shrink, width (px 400), paddingXY 20 20, spacing 15 ]
-                [ Element.image [ alignTop, centerX, Element.height (px 150), width (px 150) ] { src = "/logo.svg", description = "nah" }
+                [ Element.image [ alignTop, centerX, Element.height (px 150), width (px 250), paddingEach { top = 0, right = 0, bottom = 0, left = 20 } ] { src = "/logo.svg", description = "nah" }
                 , el [ alignTop, centerX, Font.size 50 ] (Element.text "Menu")
                 , Element.link buttonStyle
                     { label = Element.text "Tutorial"
@@ -402,42 +414,6 @@ globalHomeView =
         ]
 
 
-
--- globalHomeView : Element Msg
--- globalHomeView =
---     Element.html helperView
---
---
--- helperView : Html Msg
--- helperView =
---     div []
---         [ img [ src "/logo.svg" ] []
---         , h1 [] [ Html.text "Jumpero" ]
---
---         -- , div buttonStyle [ text "asdasd" ]
---         , div []
---             [ button buttonStyle
---                 [ Html.text "Úrovne" ]
---             ]
---         , div []
---             [ button ([ type_ "submit" ] ++ buttonStyle)
---                 [ Html.text "Nastavenia" ]
---             ]
---         , div []
---             [ button ([ type_ "submit" ] ++ buttonStyle)
---                 [ Html.text "Najvyššie skóre" ]
---             ]
---         , div []
---             [ button ([ type_ "submit" ] ++ buttonStyle)
---                 [ Html.text "Editor mapy" ]
---             ]
---         , div []
---             [ button ([ type_ "submit" ] ++ buttonStyle)
---                 [ Html.text "Odhlásenie" ]
---             ]
---         ]
-
-
 buttonStyle : List (Element.Attribute msg)
 buttonStyle =
     [ width (px 300)
@@ -465,7 +441,7 @@ encodeUser user =
         json =
             Encode.object
                 [ ( "username", Encode.string user.username )
-                , ( "level", Encode.int user.level )
+                , ( "extraJumps", Encode.int user.extraJumps )
                 ]
     in
     Ports.storeUser json
