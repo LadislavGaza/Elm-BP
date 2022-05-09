@@ -18,7 +18,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
-import Html exposing (Attribute, Html, div, h1, h3, p, pre, text)
+import Html exposing (Attribute, Html, div, h1, h3, p, pre, text, th)
 import Html.Attributes exposing (autofocus, id, style, tabindex)
 import Html.Events exposing (on)
 import Json.Decode as Json exposing (..)
@@ -36,36 +36,6 @@ import Tuple3 exposing (..)
 ----MODEL----
 
 
-type Direction
-    = Up
-    | Right
-    | Down
-    | Left
-
-
-type Movement
-    = KeyInput
-    | Animated
-
-
-type Field
-    = Road Car
-    | RoadEmpty
-    | Tile
-    | Empty
-
-
-type alias Point =
-    ( Int, Int )
-
-
-type alias Car =
-    { movement : Movement
-    , direction : Direction
-    , color : Color.Color
-    }
-
-
 amountOfJumps =
     5
 
@@ -74,35 +44,38 @@ winningFieldPoint =
     ( 3, 3 )
 
 
+boardSizeX =
+    5
 
--- type alias Cars =
---     List Car
 
-
-type alias Board =
-    { boardItself : Dict Point Field, remainingJumps : Int, winningField : Point, won : Bool }
+boardSizeY =
+    4
 
 
 initialBoard : Board
 initialBoard =
     { boardItself =
         Dict.fromList
-            [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Right, color = green } )
+            [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Data.Right, color = green } )
             , ( ( 0, 1 ), Tile )
             , ( ( 0, 2 ), Tile )
             , ( ( 0, 3 ), Tile )
             , ( ( 1, 0 ), RoadEmpty )
             , ( ( 1, 1 ), RoadEmpty )
             , ( ( 1, 2 ), RoadEmpty )
-            , ( ( 1, 3 ), Road { movement = Animated, direction = Right, color = red } )
+            , ( ( 1, 3 ), Road { movement = Animated, direction = Data.Right, color = red } )
             , ( ( 2, 0 ), Tile )
             , ( ( 2, 1 ), Tile )
             , ( ( 2, 2 ), RoadEmpty )
             , ( ( 2, 3 ), Tile )
             , ( ( 3, 0 ), Tile )
             , ( ( 3, 1 ), Tile )
-            , ( ( 3, 2 ), Road { movement = Animated, direction = Left, color = red } )
+            , ( ( 3, 2 ), Road { movement = Animated, direction = Data.Left, color = red } )
             , ( ( 3, 3 ), RoadEmpty )
+            , ( ( 4, 0 ), RoadEmpty )
+            , ( ( 4, 1 ), RoadEmpty )
+            , ( ( 4, 2 ), RoadEmpty )
+            , ( ( 4, 3 ), RoadEmpty )
             ]
     , remainingJumps = amountOfJumps
     , winningField = winningFieldPoint
@@ -110,62 +83,8 @@ initialBoard =
     }
 
 
-boardSize =
-    4
-
-
-blockSize =
-    64
-
-
-tileColor =
-    lightGreen
-
-
-roadColor =
-    darkGray
-
-
 
 -- Model
-
-
-type alias Delta =
-    Float
-
-
-type alias Model =
-    { localUser : User
-    , lastEvent : Maybe KeyboardEvent
-    , time : Float
-    , board : Board
-    }
-
-
-init : User -> ( Model, Cmd Msg )
-init user =
-    ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard }
-    , Cmd.none
-    )
-
-
-
--- initialCars : Cars
--- initialCars =
---     Dict.fromList
---         [ makeCarEntry True 1 ( 0, 0 ) Right lightBlue
---         , makeCarEntry False 2 ( 1, 1 ) Right red
---         , makeCarEntry True 3 ( 7, 2 ) Left black
---         , makeCarEntry False 4 ( 2, 4 ) Right white
---         ]
--- makeCarEntry : Bool -> Int -> Point -> Direction -> Color.Color -> ( Int, Car )
--- makeCarEntry mov index pt dir c =
---     ( index, { moving = mov, direction = dir, coords = pt, color = c, movement = Animated } )
----UPDATE----
--- type Msg
---     = Name String
---     | Levels Int
---     | UpdateInfo User
 
 
 type Msg
@@ -174,13 +93,34 @@ type Msg
     | Tick Delta
 
 
+type alias Model =
+    { localUser : User
+    , lastEvent : Maybe KeyboardEvent
+    , time : Float
+    , board : Board
+    , maxTime : Float
+    }
+
+
+init : User -> ( Model, Cmd Msg )
+init user =
+    ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard, maxTime = 10 }
+    , Cmd.none
+    )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         HandleKeyboardEvent event ->
             ( { model
                 | lastEvent = Just event
-                , board = moveCars (Just event) model.board
+                , board =
+                    if model.maxTime <= 0 then
+                        model.board
+
+                    else
+                        moveCars (Just event) model.board
               }
             , Cmd.none
             )
@@ -199,12 +139,18 @@ update msg model =
                 shouldUpdate =
                     secsPassed /= newSecs
 
+                maxTimeHelper =
+                    model.maxTime
+
                 _ =
-                    Debug.log "won :" model.board.won
+                    Debug.log "maxTime :" model.maxTime
             in
             ( { model
                 | board =
                     if model.board.won == True then
+                        model.board
+
+                    else if model.maxTime <= 0 then
                         model.board
 
                     else if shouldUpdate then
@@ -213,6 +159,12 @@ update msg model =
                     else
                         model.board
                 , time = newTime
+                , maxTime =
+                    if model.maxTime - dt > 0 then
+                        model.maxTime - dt
+
+                    else
+                        0
               }
             , Cmd.none
             )
@@ -226,23 +178,23 @@ tick dt board =
     updateBoard board
 
 
-nextCoords : Direction -> Point -> Point
+nextCoords : Data.Direction -> Data.Point -> Data.Point
 nextCoords dir ( x, y ) =
     case dir of
-        Up ->
+        Data.Up ->
             ( x, y - 1 )
 
-        Right ->
+        Data.Right ->
             ( x + 1, y )
 
-        Down ->
+        Data.Down ->
             ( x, y + 1 )
 
-        Left ->
+        Data.Left ->
             ( x - 1, y )
 
 
-get : Point -> Board -> Field
+get : Data.Point -> Board -> Field
 get coords board =
     case Dict.Extra.find (\key _ -> key == coords) board.boardItself of
         Just ( _, tile ) ->
@@ -252,7 +204,7 @@ get coords board =
             Empty
 
 
-getPointField : Point -> Board -> ( Point, Field )
+getPointField : Data.Point -> Board -> ( Data.Point, Field )
 getPointField coords board =
     case Dict.Extra.find (\key _ -> key == coords) board.boardItself of
         Just ( _, tile ) ->
@@ -288,7 +240,7 @@ updateBoard board =
                     ( point, car )
 
                 _ ->
-                    ( point, { movement = Animated, direction = Down, color = white } )
+                    ( point, { movement = Animated, direction = Data.Down, color = white } )
 
         carFields =
             Dict.filter hasCar board.boardItself
@@ -355,25 +307,29 @@ updateBoard board =
 rotateCar : Car -> Car
 rotateCar car =
     case car.direction of
-        Up ->
-            { car | direction = Right }
+        Data.Up ->
+            { car | direction = Data.Right }
 
-        Right ->
-            { car | direction = Down }
+        Data.Right ->
+            { car | direction = Data.Down }
 
-        Down ->
-            { car | direction = Left }
+        Data.Down ->
+            { car | direction = Data.Left }
 
-        Left ->
-            { car | direction = Up }
+        Data.Left ->
+            { car | direction = Data.Up }
 
 
 boardElement : Model -> Collage Msg
 boardElement model =
     let
-        rg =
+        rangeX =
             List.range 0
-                (boardSize - 1)
+                (boardSizeX - 1)
+
+        rangeY =
+            List.range 0
+                (boardSizeY - 1)
 
         oneFieldPoint ( x, y ) =
             getPointField ( x, y ) model.board
@@ -385,10 +341,10 @@ boardElement model =
             vertical <|
                 List.map
                     (makeTile x)
-                    rg
+                    rangeY
     in
     horizontal <|
-        List.map col rg
+        List.map col rangeX
 
 
 
@@ -404,7 +360,7 @@ boardElement model =
 --             Empty
 
 
-oneField : ( Point, Field ) -> Point -> Collage Msg
+oneField : ( Data.Point, Field ) -> Data.Point -> Collage Msg
 oneField ( point, field ) winner =
     let
         border =
@@ -441,16 +397,16 @@ carElement car =
     let
         rotationRadians =
             case car.direction of
-                Up ->
+                Data.Up ->
                     0
 
-                Right ->
+                Data.Right ->
                     270
 
-                Down ->
+                Data.Down ->
                     180
 
-                Left ->
+                Data.Left ->
                     90
     in
     if car.color == green then
@@ -497,7 +453,7 @@ moveCars maybeEvent board =
                     False
 
         blackCar =
-            { movement = Animated, direction = Right, color = black }
+            { movement = Animated, direction = Data.Right, color = black }
 
         takeCar ( point, field ) =
             case field of
@@ -505,7 +461,7 @@ moveCars maybeEvent board =
                     ( point, car )
 
                 _ ->
-                    ( point, { movement = Animated, direction = Down, color = white } )
+                    ( point, { movement = Animated, direction = Data.Down, color = white } )
 
         nextCoordsKey ( x, y ) key =
             case key of
@@ -527,16 +483,16 @@ moveCars maybeEvent board =
         newDir dir key =
             case key of
                 Keyboard.Key.Up ->
-                    Up
+                    Data.Up
 
                 Keyboard.Key.Right ->
-                    Right
+                    Data.Right
 
                 Keyboard.Key.Down ->
-                    Down
+                    Data.Down
 
                 Keyboard.Key.Left ->
-                    Left
+                    Data.Left
 
                 _ ->
                     dir
@@ -798,73 +754,6 @@ moveCars maybeEvent board =
         }
 
 
-
--- updateCar : Board -> ( Point, Car ) -> ( Point, Field )
--- updateCar board ( point, car ) =
---     let
---         uCoords =
---             nextCoords car.direction point
---     in
---     case get uCoords board of
---         RoadEmpty ->
---             ( uCoords, Road car )
---
---         _ ->
---             ( point, Road (rotateCar car) )
---
---
--- moveCar : Maybe KeyboardEvent -> Car -> Car
--- moveCar maybeEvent car =
---     let
---         nextCoord ( x, y ) key =
---             case key of
---                 Keyboard.Key.Up ->
---                     ( x, y - 1 )
---
---                 Keyboard.Key.Right ->
---                     ( x + 1, y )
---
---                 Keyboard.Key.Down ->
---                     ( x, y + 1 )
---
---                 Keyboard.Key.Left ->
---                     ( x - 1, y )
---
---                 _ ->
---                     ( x, y )
---
---         newDir dir key =
---             case key of
---                 Keyboard.Key.Up ->
---                     Up
---
---                 Keyboard.Key.Right ->
---                     Right
---
---                 Keyboard.Key.Down ->
---                     Down
---
---                 Keyboard.Key.Left ->
---                     Left
---
---                 _ ->
---                     dir
---     in
---     case maybeEvent of
---         Just event ->
---             if car.moving then
---                 car
---
---             else
---                 { car
---                     | coords = nextCoord car.coords event.keyCode
---                     , direction = newDir car.direction event.keyCode
---                 }
---
---         Nothing ->
---             car
-
-
 viewEvent : Maybe KeyboardEvent -> Element Msg
 viewEvent maybeEvent =
     case maybeEvent of
@@ -921,14 +810,27 @@ view model =
             ]
             [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
                 [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
-                , el
-                    [ alignTop
-                    , centerX
-                    , Font.size 50
-                    ]
-                    (viewEvent model.lastEvent)
+                , if model.board.won then
+                    el
+                        [ alignTop
+                        , centerX
+                        , Font.size 30
+                        ]
+                        (Element.text "Vyhral si")
+
+                  else if model.maxTime <= 0 then
+                    el
+                        [ alignTop
+                        , centerX
+                        , Font.size 30
+                        ]
+                        (Element.text "Prehral si")
+
+                  else
+                    el [] (Element.text "")
                 , el [ centerX ] auticka
                 , el [ centerX ] (Element.text ("Remaning jumps:" ++ toString model.board.remainingJumps))
+                , el [ centerX ] (Element.text ("Remaning time:" ++ toString (round model.maxTime)))
                 , Element.link buttonStyle
                     { label = Element.text "Home"
                     , url = "Home"
