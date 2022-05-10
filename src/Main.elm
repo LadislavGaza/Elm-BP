@@ -58,8 +58,7 @@ type alias Model =
 
 unknownUser : User
 unknownUser =
-    { username = "Player"
-    , extraJumps = 0
+    { extraJumps = 0
     , extraGameSpeed = 0
     , extraDuration = 0
     , level1HS = 0
@@ -143,8 +142,7 @@ update message model =
 
                         newUser : User
                         newUser =
-                            { username = newChildModel.localUser.username
-                            , extraJumps = newChildModel.localUser.extraJumps
+                            { extraJumps = newChildModel.localUser.extraJumps
                             , extraGameSpeed = newChildModel.localUser.extraGameSpeed
                             , extraDuration = newChildModel.localUser.extraDuration
                             , level1HS = newChildModel.localUser.level1HS
@@ -169,8 +167,7 @@ update message model =
 
                         newUser : User
                         newUser =
-                            { username = newChildModel.localUser.username
-                            , extraJumps = newChildModel.localUser.extraJumps
+                            { extraJumps = newChildModel.localUser.extraJumps
                             , extraGameSpeed = newChildModel.localUser.extraGameSpeed
                             , extraDuration = newChildModel.localUser.extraDuration
                             , level1HS = newChildModel.localUser.level1HS
@@ -195,8 +192,7 @@ update message model =
 
                         newUser : User
                         newUser =
-                            { username = newChildModel.localUser.username
-                            , extraJumps = newChildModel.localUser.extraJumps
+                            { extraJumps = newChildModel.localUser.extraJumps
                             , extraGameSpeed = newChildModel.localUser.extraGameSpeed
                             , extraDuration = newChildModel.localUser.extraDuration
                             , level1HS = newChildModel.localUser.level1HS
@@ -221,8 +217,7 @@ update message model =
 
                         newUser : User
                         newUser =
-                            { username = newChildModel.localUser.username
-                            , extraJumps = newChildModel.localUser.extraJumps
+                            { extraJumps = newChildModel.localUser.extraJumps
                             , extraGameSpeed = newChildModel.localUser.extraGameSpeed
                             , extraDuration = newChildModel.localUser.extraDuration
                             , level1HS = newChildModel.localUser.level1HS
@@ -453,8 +448,7 @@ encodeUser user =
     let
         json =
             Encode.object
-                [ ( "username", Encode.string user.username )
-                , ( "extraJumps", Encode.int user.extraJumps )
+                [ ( "extraJumps", Encode.int user.extraJumps )
                 , ( "extraGameSpeed", Encode.int user.extraGameSpeed )
                 , ( "extraDuration", Encode.int user.extraDuration )
                 , ( "level1HS", Encode.int user.level1HS )

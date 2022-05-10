@@ -6,8 +6,7 @@ import Dict.Extra as Extra
 
 
 type alias User =
-    { username : String
-    , extraJumps : Int
+    { extraJumps : Int
     , extraGameSpeed : Int
     , extraDuration : Int
     , level1HS : Int

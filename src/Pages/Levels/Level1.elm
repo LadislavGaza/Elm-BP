@@ -161,8 +161,7 @@ update msg model =
                     50 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
 
                 newUser =
-                    { username = model.localUser.username
-                    , extraJumps = model.localUser.extraJumps
+                    { extraJumps = model.localUser.extraJumps
                     , extraGameSpeed = model.localUser.extraGameSpeed
                     , extraDuration = model.localUser.extraDuration
                     , level1HS =

@@ -62,8 +62,7 @@ update msg model =
         Jumps jumps ->
             let
                 newUser =
-                    { username = model.localUser.username
-                    , extraJumps = jumps
+                    { extraJumps = jumps
                     , extraGameSpeed = model.localUser.extraGameSpeed
                     , extraDuration = model.localUser.extraDuration
                     , level1HS = model.localUser.level1HS
@@ -76,8 +75,7 @@ update msg model =
         Speed speed ->
             let
                 newUser =
-                    { username = model.localUser.username
-                    , extraJumps = model.localUser.extraJumps
+                    { extraJumps = model.localUser.extraJumps
                     , extraGameSpeed = speed
                     , extraDuration = model.localUser.extraDuration
                     , level1HS = model.localUser.level1HS
@@ -90,8 +88,7 @@ update msg model =
         Duration duration ->
             let
                 newUser =
-                    { username = model.localUser.username
-                    , extraJumps = model.localUser.extraJumps
+                    { extraJumps = model.localUser.extraJumps
                     , extraGameSpeed = model.localUser.extraGameSpeed
                     , extraDuration = duration
                     , level1HS = model.localUser.level1HS
