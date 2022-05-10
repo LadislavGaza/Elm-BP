@@ -1,12 +1,12 @@
 module Main exposing (..)
 
+import Assets.Data as Data exposing (..)
 import Assets.Style exposing (..)
 import Browser exposing (Document)
 import Browser.Events exposing (onClick)
 import Browser.Navigation as Nav
 import Collage.Layout exposing (height)
 import Color
-import Data exposing (..)
 import Element as Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -20,9 +20,9 @@ import Json.Encode as Encode
 import Pages.Editor
 import Pages.HighScore
 import Pages.Home
-import Pages.Level1
-import Pages.Level2
-import Pages.Level3
+import Pages.Levels.Level1
+import Pages.Levels.Level2
+import Pages.Levels.Level3
 import Pages.Login
 import Pages.Settings
 import Pages.Tutorial
@@ -39,9 +39,9 @@ import Url.Parser as Parser exposing ((</>), Parser, custom, fragment, map, oneO
 type Page
     = Home Pages.Home.Model
     | HighScore Pages.HighScore.Model
-    | Level1 Pages.Level1.Model
-    | Level2 Pages.Level2.Model
-    | Level3 Pages.Level3.Model
+    | Level1 Pages.Levels.Level1.Model
+    | Level2 Pages.Levels.Level2.Model
+    | Level3 Pages.Levels.Level3.Model
     | Tutorial Pages.Tutorial.Model
     | Settings Pages.Settings.Model
     | Global
@@ -91,9 +91,9 @@ type Msg
     | UrlChanged Url.Url
     | HomeMsg Pages.Home.Msg
     | HighScoreMsg Pages.HighScore.Msg
-    | Level1Msg Pages.Level1.Msg
-    | Level2Msg Pages.Level2.Msg
-    | Level3Msg Pages.Level3.Msg
+    | Level1Msg Pages.Levels.Level1.Msg
+    | Level2Msg Pages.Levels.Level2.Msg
+    | Level3Msg Pages.Levels.Level3.Msg
     | TutorialMsg Pages.Tutorial.Msg
     | SettingsMsg Pages.Settings.Msg
     | PlayMe Time.Posix
@@ -162,7 +162,7 @@ update message model =
                 Level1 level1 ->
                     let
                         ( newChildModel, newChildCmd ) =
-                            Pages.Level1.update msg level1
+                            Pages.Levels.Level1.update msg level1
 
                         ( newModel, newCmd ) =
                             stepLevel1 model ( newChildModel, newChildCmd )
@@ -188,7 +188,7 @@ update message model =
                 Level2 level2 ->
                     let
                         ( newChildModel, newChildCmd ) =
-                            Pages.Level2.update msg level2
+                            Pages.Levels.Level2.update msg level2
 
                         ( newModel, newCmd ) =
                             stepLevel2 model ( newChildModel, newChildCmd )
@@ -214,7 +214,7 @@ update message model =
                 Level3 level3 ->
                     let
                         ( newChildModel, newChildCmd ) =
-                            Pages.Level3.update msg level3
+                            Pages.Levels.Level3.update msg level3
 
                         ( newModel, newCmd ) =
                             stepLevel3 model ( newChildModel, newChildCmd )
@@ -255,9 +255,9 @@ stepUrl url model =
                 [ route (s "Home") (stepHome model (Pages.Home.init ()))
                 , route (s "HighScore") (stepHighScore model (Pages.HighScore.init model.user))
                 , route (s "Settings") (stepSettings model (Pages.Settings.init model.user))
-                , route (s "Level1") (stepLevel1 model (Pages.Level1.init model.user))
-                , route (s "Level2") (stepLevel2 model (Pages.Level2.init model.user))
-                , route (s "Level3") (stepLevel3 model (Pages.Level3.init model.user))
+                , route (s "Level1") (stepLevel1 model (Pages.Levels.Level1.init model.user))
+                , route (s "Level2") (stepLevel2 model (Pages.Levels.Level2.init model.user))
+                , route (s "Level3") (stepLevel3 model (Pages.Levels.Level3.init model.user))
                 , route (s "Tutorial") (stepTutorial model (Pages.Tutorial.init model.user))
                 ]
     in
@@ -290,21 +290,21 @@ stepSettings model ( settings, cmds ) =
     )
 
 
-stepLevel1 : Model -> ( Pages.Level1.Model, Cmd Pages.Level1.Msg ) -> ( Model, Cmd Msg )
+stepLevel1 : Model -> ( Pages.Levels.Level1.Model, Cmd Pages.Levels.Level1.Msg ) -> ( Model, Cmd Msg )
 stepLevel1 model ( level1, cmds ) =
     ( { model | page = Level1 level1 }
     , Cmd.map Level1Msg cmds
     )
 
 
-stepLevel2 : Model -> ( Pages.Level2.Model, Cmd Pages.Level2.Msg ) -> ( Model, Cmd Msg )
+stepLevel2 : Model -> ( Pages.Levels.Level2.Model, Cmd Pages.Levels.Level2.Msg ) -> ( Model, Cmd Msg )
 stepLevel2 model ( level2, cmds ) =
     ( { model | page = Level2 level2 }
     , Cmd.map Level2Msg cmds
     )
 
 
-stepLevel3 : Model -> ( Pages.Level3.Model, Cmd Pages.Level3.Msg ) -> ( Model, Cmd Msg )
+stepLevel3 : Model -> ( Pages.Levels.Level3.Model, Cmd Pages.Levels.Level3.Msg ) -> ( Model, Cmd Msg )
 stepLevel3 model ( level3, cmds ) =
     ( { model | page = Level3 level3 }
     , Cmd.map Level3Msg cmds
@@ -349,13 +349,13 @@ subscriptions model =
                 Sub.none
 
             Level1 level1Model ->
-                Sub.map Level1Msg (Pages.Level1.subs level1Model)
+                Sub.map Level1Msg (Pages.Levels.Level1.subs level1Model)
 
             Level2 level2Model ->
-                Sub.map Level2Msg (Pages.Level2.subs level2Model)
+                Sub.map Level2Msg (Pages.Levels.Level2.subs level2Model)
 
             Level3 level3Model ->
-                Sub.map Level3Msg (Pages.Level3.subs level3Model)
+                Sub.map Level3Msg (Pages.Levels.Level3.subs level3Model)
 
             Tutorial tutorialModel ->
                 Sub.map TutorialMsg (Pages.Tutorial.subs tutorialModel)
@@ -392,13 +392,13 @@ searchView model =
             Element.map SettingsMsg (Pages.Settings.view settingsModel)
 
         Level1 level1Model ->
-            Element.map Level1Msg (Pages.Level1.view level1Model)
+            Element.map Level1Msg (Pages.Levels.Level1.view level1Model)
 
         Level2 level2Model ->
-            Element.map Level2Msg (Pages.Level2.view level2Model)
+            Element.map Level2Msg (Pages.Levels.Level2.view level2Model)
 
         Level3 level3Model ->
-            Element.map Level3Msg (Pages.Level3.view level3Model)
+            Element.map Level3Msg (Pages.Levels.Level3.view level3Model)
 
         Tutorial tutorialModel ->
             Element.map TutorialMsg (Pages.Tutorial.view tutorialModel)

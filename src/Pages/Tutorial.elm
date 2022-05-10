@@ -1,5 +1,6 @@
 module Pages.Tutorial exposing (..)
 
+import Assets.Data as Data exposing (..)
 import Assets.Style exposing (..)
 import Browser exposing (element)
 import Browser.Dom as Dom
@@ -9,7 +10,6 @@ import Collage exposing (..)
 import Collage.Layout exposing (..)
 import Collage.Render exposing (svg)
 import Color exposing (..)
-import Data exposing (..)
 import Debug exposing (toString)
 import Dict exposing (Dict)
 import Dict.Extra exposing (filterMap)

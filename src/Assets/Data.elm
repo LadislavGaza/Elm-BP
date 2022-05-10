@@ -1,4 +1,4 @@
-module Data exposing (..)
+module Assets.Data exposing (..)
 
 import Color exposing (..)
 import Dict exposing (Dict)

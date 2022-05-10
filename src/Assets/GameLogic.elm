@@ -1,8 +1,8 @@
 module Assets.GameLogic exposing (..)
 
+import Assets.Data as Data exposing (..)
 import Collage exposing (..)
 import Color exposing (..)
-import Data exposing (..)
 import Dict exposing (Dict)
 import Dict.Extra exposing (..)
 import Keyboard.Event exposing (KeyboardEvent)

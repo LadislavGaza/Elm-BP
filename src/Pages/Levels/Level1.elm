@@ -1,5 +1,6 @@
-module Pages.Level2 exposing (..)
+module Pages.Levels.Level1 exposing (..)
 
+import Assets.Data as Data exposing (..)
 import Assets.GameLogic exposing (..)
 import Assets.Style exposing (..)
 import Browser exposing (element)
@@ -10,7 +11,6 @@ import Collage exposing (..)
 import Collage.Layout exposing (..)
 import Collage.Render exposing (svg)
 import Color exposing (..)
-import Data exposing (..)
 import Debug exposing (toString)
 import Dict exposing (Dict)
 import Element as Element exposing (..)
@@ -165,13 +165,13 @@ update msg model =
                     , extraJumps = model.localUser.extraJumps
                     , extraGameSpeed = model.localUser.extraGameSpeed
                     , extraDuration = model.localUser.extraDuration
-                    , level1HS = model.localUser.level1HS
-                    , level2HS =
-                        if model.localUser.level2HS < newMaxScore then
+                    , level1HS =
+                        if model.localUser.level1HS < newMaxScore then
                             newMaxScore
 
                         else
-                            model.localUser.level2HS
+                            model.localUser.level1HS
+                    , level2HS = model.localUser.level2HS
                     , level3HS = model.localUser.level3HS
                     }
             in
