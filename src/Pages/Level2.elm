@@ -53,8 +53,12 @@ boardSizeY =
     4
 
 
-initialBoard : Board
-initialBoard =
+gameDuration =
+    10
+
+
+initialBoard : User -> Board
+initialBoard user =
     { boardItself =
         Dict.fromList
             [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Data.Right, color = green } )
@@ -78,7 +82,7 @@ initialBoard =
             , ( ( 4, 2 ), RoadEmpty )
             , ( ( 4, 3 ), RoadEmpty )
             ]
-    , remainingJumps = amountOfJumps
+    , remainingJumps = amountOfJumps + user.extraJumps
     , winningField = winningFieldPoint
     , won = False
     }
@@ -105,7 +109,7 @@ type alias Model =
 
 init : User -> ( Model, Cmd Msg )
 init user =
-    ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard, maxTime = 10 }
+    ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard user, maxTime = gameDuration + Basics.toFloat user.extraDuration }
     , Cmd.none
     )
 
@@ -128,14 +132,21 @@ update msg model =
 
         Tick dt ->
             let
+                newDt =
+                    -- dt + dt * Basics.toFloat model.localUser.extraGameSpeed
+                    dt * Basics.toFloat (2 ^ model.localUser.extraGameSpeed)
+
                 newTime =
                     model.time + dt
+
+                newTimeDt =
+                    model.time + newDt
 
                 secsPassed =
                     round model.time
 
                 newSecs =
-                    round newTime
+                    round newTimeDt
 
                 shouldUpdate =
                     secsPassed /= newSecs
@@ -143,11 +154,11 @@ update msg model =
                 maxTimeHelper =
                     model.maxTime
 
-                newMaxScore =
-                    10 + model.board.remainingJumps * 10
-
                 _ =
-                    Debug.log "maxTime :" model.maxTime
+                    Debug.log "dt :" dt
+
+                newMaxScore =
+                    50 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
 
                 newUser =
                     { username = model.localUser.username
@@ -177,7 +188,7 @@ update msg model =
 
                     else
                         model.board
-                , time = newTime
+                , time = newTimeDt
                 , maxTime =
                     if model.maxTime - dt > 0 then
                         model.maxTime - dt
@@ -315,5 +326,5 @@ view model =
 
 
 subs : Model -> Sub Msg
-subs _ =
+subs model =
     onAnimationFrameDelta ((\dt -> dt / 1000) >> Tick)

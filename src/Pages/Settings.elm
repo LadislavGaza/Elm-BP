@@ -1,5 +1,6 @@
 module Pages.Settings exposing (..)
 
+import Assets.Style exposing (..)
 import Browser exposing (element)
 import Browser.Dom as Dom
 import Browser.Events exposing (onAnimationFrameDelta)
@@ -27,7 +28,6 @@ import Keyboard.Event exposing (KeyboardEvent, decodeKeyboardEvent)
 import Keyboard.Key
 import List
 import String exposing (..)
-import Task
 
 
 
@@ -52,7 +52,8 @@ init user =
 
 type Msg
     = Jumps Int
-    | UpdateUser User
+    | Speed Int
+    | Duration Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -72,8 +73,33 @@ update msg model =
             in
             ( { model | localUser = newUser }, Cmd.none )
 
-        UpdateUser user ->
-            ( { model | localUser = user }, Cmd.none )
+        Speed speed ->
+            let
+                newUser =
+                    { username = model.localUser.username
+                    , extraJumps = model.localUser.extraJumps
+                    , extraGameSpeed = speed
+                    , extraDuration = model.localUser.extraDuration
+                    , level1HS = model.localUser.level1HS
+                    , level2HS = model.localUser.level2HS
+                    , level3HS = model.localUser.level3HS
+                    }
+            in
+            ( { model | localUser = newUser }, Cmd.none )
+
+        Duration duration ->
+            let
+                newUser =
+                    { username = model.localUser.username
+                    , extraJumps = model.localUser.extraJumps
+                    , extraGameSpeed = model.localUser.extraGameSpeed
+                    , extraDuration = duration
+                    , level1HS = model.localUser.level1HS
+                    , level2HS = model.localUser.level2HS
+                    , level3HS = model.localUser.level3HS
+                    }
+            in
+            ( { model | localUser = newUser }, Cmd.none )
 
 
 
@@ -90,10 +116,13 @@ view model =
             , centerX
             , spacing 40
             , Background.color (Element.rgb255 254 216 177)
+            , alignTop
             ]
-            [ column [ alignLeft, alignTop, centerX, Element.height fill, Element.width (px 400), paddingXY 20 20, spacing 15 ]
-                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
+            [ column [ alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 50 ]
+                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Settings")
                 , sliderJumps model
+                , sliderSpeed model
+                , sliderDuration model
                 , Element.link buttonStyle
                     { label = Element.text "Home"
                     , url = "Home"
@@ -101,19 +130,6 @@ view model =
                 ]
             ]
         ]
-
-
-buttonStyle : List (Element.Attribute msg)
-buttonStyle =
-    [ Element.width (px 300)
-    , Background.color (Element.rgb255 57 124 213)
-    , Font.color (Element.rgb 1 1 1)
-    , paddingXY 14 10
-    , Border.rounded 10
-    , Font.size 20
-    , Font.center
-    , centerX
-    ]
 
 
 sliderJumps : Model -> Element Msg
@@ -137,10 +153,70 @@ sliderJumps model =
         , label =
             Input.labelAbove []
                 (Element.text ("Extra jumps: " ++ String.fromInt model.localUser.extraJumps))
-        , min = 1
-        , max = 10
+        , min = -2
+        , max = 2
         , step = Just 1
         , value = Basics.toFloat model.localUser.extraJumps
+        , thumb =
+            Input.defaultThumb
+        }
+
+
+sliderSpeed : Model -> Element Msg
+sliderSpeed model =
+    Input.slider
+        [ centerY
+        , centerX
+        , alignTop
+        , Element.behindContent
+            (Element.el
+                [ Element.width Element.fill
+                , Element.height (Element.px 2)
+                , Element.centerY
+                , Background.color (Element.rgb255 57 124 213)
+                , Border.rounded 2
+                ]
+                Element.none
+            )
+        ]
+        { onChange = round >> Speed
+        , label =
+            Input.labelAbove []
+                (Element.text ("Extra speed: " ++ String.fromInt model.localUser.extraGameSpeed))
+        , min = -1
+        , max = 1
+        , step = Just 1
+        , value = Basics.toFloat model.localUser.extraGameSpeed
+        , thumb =
+            Input.defaultThumb
+        }
+
+
+sliderDuration : Model -> Element Msg
+sliderDuration model =
+    Input.slider
+        [ centerY
+        , centerX
+        , alignTop
+        , Element.behindContent
+            (Element.el
+                [ Element.width Element.fill
+                , Element.height (Element.px 2)
+                , Element.centerY
+                , Background.color (Element.rgb255 57 124 213)
+                , Border.rounded 2
+                ]
+                Element.none
+            )
+        ]
+        { onChange = round >> Duration
+        , label =
+            Input.labelAbove []
+                (Element.text ("Extra duration: " ++ String.fromInt model.localUser.extraDuration))
+        , min = -5
+        , max = 5
+        , step = Just 1
+        , value = Basics.toFloat model.localUser.extraDuration
         , thumb =
             Input.defaultThumb
         }

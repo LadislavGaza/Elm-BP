@@ -1,5 +1,6 @@
 module Pages.Tutorial exposing (..)
 
+import Assets.Style exposing (..)
 import Browser exposing (element)
 import Browser.Dom as Dom
 import Browser.Events exposing (onAnimationFrameDelta)
@@ -834,22 +835,6 @@ view model =
                 ]
             ]
         ]
-
-
-buttonStyle : List (Element.Attribute msg)
-buttonStyle =
-    [ Element.width (px 300)
-    , Background.color (Element.rgb255 57 124 213)
-    , Font.color (Element.rgb 1 1 1)
-    , paddingXY 14 10
-
-    -- , style "margin-top" "10px"
-    -- , style "margin-left" "10px"
-    , Border.rounded 10
-    , Font.size 20
-    , Font.center
-    , centerX
-    ]
 
 
 subs : Model -> Sub Msg

@@ -1,4 +1,4 @@
-module Pages.Level1 exposing (..)
+module Pages.Level3 exposing (..)
 
 import Assets.GameLogic exposing (..)
 import Assets.Style exposing (..)
@@ -165,14 +165,14 @@ update msg model =
                     , extraJumps = model.localUser.extraJumps
                     , extraGameSpeed = model.localUser.extraGameSpeed
                     , extraDuration = model.localUser.extraDuration
-                    , level1HS =
-                        if model.localUser.level1HS < newMaxScore then
+                    , level1HS = model.localUser.level1HS
+                    , level2HS = model.localUser.level2HS
+                    , level3HS =
+                        if model.localUser.level3HS < newMaxScore then
                             newMaxScore
 
                         else
-                            model.localUser.level1HS
-                    , level2HS = model.localUser.level2HS
-                    , level3HS = model.localUser.level3HS
+                            model.localUser.level3HS
                     }
             in
             ( { model

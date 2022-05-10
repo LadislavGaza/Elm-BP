@@ -22,6 +22,7 @@ import Pages.HighScore
 import Pages.Home
 import Pages.Level1
 import Pages.Level2
+import Pages.Level3
 import Pages.Login
 import Pages.Settings
 import Pages.Tutorial
@@ -37,12 +38,11 @@ import Url.Parser as Parser exposing ((</>), Parser, custom, fragment, map, oneO
 
 type Page
     = Home Pages.Home.Model
-    | Editor Pages.Editor.Model
     | HighScore Pages.HighScore.Model
     | Level1 Pages.Level1.Model
     | Level2 Pages.Level2.Model
+    | Level3 Pages.Level3.Model
     | Tutorial Pages.Tutorial.Model
-      -- | Login Pages.Login.Model
     | Settings Pages.Settings.Model
     | Global
     | NotFound
@@ -90,12 +90,11 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | HomeMsg Pages.Home.Msg
-    | EditorMsg Pages.Editor.Msg
     | HighScoreMsg Pages.HighScore.Msg
     | Level1Msg Pages.Level1.Msg
     | Level2Msg Pages.Level2.Msg
+    | Level3Msg Pages.Level3.Msg
     | TutorialMsg Pages.Tutorial.Msg
-      -- | LoginMsg Pages.Login.Msg
     | SettingsMsg Pages.Settings.Msg
     | PlayMe Time.Posix
 
@@ -119,14 +118,6 @@ update message model =
             case model.page of
                 Home home ->
                     stepHome model (Pages.Home.update msg home)
-
-                _ ->
-                    ( model, Cmd.none )
-
-        EditorMsg msg ->
-            case model.page of
-                Editor editor ->
-                    stepEditor model (Pages.Editor.update msg editor)
 
                 _ ->
                     ( model, Cmd.none )
@@ -166,19 +157,28 @@ update message model =
                 _ ->
                     ( model, Cmd.none )
 
-        --
-        -- LoginMsg msg ->
-        --     case model.page of
-        --         Login login ->
-        --             stepLogin model (Pages.Login.update msg login)
-        --
-        --         _ ->
-        --             ( model, Cmd.none )
-        --
         Level1Msg msg ->
             case model.page of
                 Level1 level1 ->
-                    stepLevel1 model (Pages.Level1.update msg level1)
+                    let
+                        ( newChildModel, newChildCmd ) =
+                            Pages.Level1.update msg level1
+
+                        ( newModel, newCmd ) =
+                            stepLevel1 model ( newChildModel, newChildCmd )
+
+                        newUser : User
+                        newUser =
+                            { username = newChildModel.localUser.username
+                            , extraJumps = newChildModel.localUser.extraJumps
+                            , extraGameSpeed = newChildModel.localUser.extraGameSpeed
+                            , extraDuration = newChildModel.localUser.extraDuration
+                            , level1HS = newChildModel.localUser.level1HS
+                            , level2HS = newChildModel.localUser.level2HS
+                            , level3HS = newChildModel.localUser.level3HS
+                            }
+                    in
+                    ( { newModel | user = newUser }, Cmd.batch [ newCmd, encodeUser newUser ] )
 
                 _ ->
                     ( model, Cmd.none )
@@ -186,13 +186,38 @@ update message model =
         Level2Msg msg ->
             case model.page of
                 Level2 level2 ->
-                    -- stepSettings model (Pages.Settings.update msg settings)
                     let
                         ( newChildModel, newChildCmd ) =
                             Pages.Level2.update msg level2
 
                         ( newModel, newCmd ) =
                             stepLevel2 model ( newChildModel, newChildCmd )
+
+                        newUser : User
+                        newUser =
+                            { username = newChildModel.localUser.username
+                            , extraJumps = newChildModel.localUser.extraJumps
+                            , extraGameSpeed = newChildModel.localUser.extraGameSpeed
+                            , extraDuration = newChildModel.localUser.extraDuration
+                            , level1HS = newChildModel.localUser.level1HS
+                            , level2HS = newChildModel.localUser.level2HS
+                            , level3HS = newChildModel.localUser.level3HS
+                            }
+                    in
+                    ( { newModel | user = newUser }, Cmd.batch [ newCmd, encodeUser newUser ] )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Level3Msg msg ->
+            case model.page of
+                Level3 level3 ->
+                    let
+                        ( newChildModel, newChildCmd ) =
+                            Pages.Level3.update msg level3
+
+                        ( newModel, newCmd ) =
+                            stepLevel3 model ( newChildModel, newChildCmd )
 
                         newUser : User
                         newUser =
@@ -228,13 +253,11 @@ stepUrl url model =
         parser =
             oneOf
                 [ route (s "Home") (stepHome model (Pages.Home.init ()))
-                , route (s "Editor") (stepEditor model (Pages.Editor.init ()))
                 , route (s "HighScore") (stepHighScore model (Pages.HighScore.init model.user))
                 , route (s "Settings") (stepSettings model (Pages.Settings.init model.user))
-
-                -- , route (s "Login") (stepLogin model (Pages.Login.init model.user))
                 , route (s "Level1") (stepLevel1 model (Pages.Level1.init model.user))
                 , route (s "Level2") (stepLevel2 model (Pages.Level2.init model.user))
+                , route (s "Level3") (stepLevel3 model (Pages.Level3.init model.user))
                 , route (s "Tutorial") (stepTutorial model (Pages.Tutorial.init model.user))
                 ]
     in
@@ -253,13 +276,6 @@ stepHome model ( home, cmds ) =
     )
 
 
-stepEditor : Model -> ( Pages.Editor.Model, Cmd Pages.Editor.Msg ) -> ( Model, Cmd Msg )
-stepEditor model ( editor, cmds ) =
-    ( { model | page = Editor editor }
-    , Cmd.map EditorMsg cmds
-    )
-
-
 stepHighScore : Model -> ( Pages.HighScore.Model, Cmd Pages.HighScore.Msg ) -> ( Model, Cmd Msg )
 stepHighScore model ( highScore, cmds ) =
     ( { model | page = HighScore highScore }
@@ -274,18 +290,6 @@ stepSettings model ( settings, cmds ) =
     )
 
 
-
---
---
--- stepLogin : Model -> ( Pages.Login.Model, Cmd Pages.Login.Msg ) -> ( Model, Cmd Msg )
--- stepLogin model ( login, cmds ) =
---     ( { model | page = Login login }
---     , Cmd.map LoginMsg cmds
---     )
---
---
-
-
 stepLevel1 : Model -> ( Pages.Level1.Model, Cmd Pages.Level1.Msg ) -> ( Model, Cmd Msg )
 stepLevel1 model ( level1, cmds ) =
     ( { model | page = Level1 level1 }
@@ -297,6 +301,13 @@ stepLevel2 : Model -> ( Pages.Level2.Model, Cmd Pages.Level2.Msg ) -> ( Model, C
 stepLevel2 model ( level2, cmds ) =
     ( { model | page = Level2 level2 }
     , Cmd.map Level2Msg cmds
+    )
+
+
+stepLevel3 : Model -> ( Pages.Level3.Model, Cmd Pages.Level3.Msg ) -> ( Model, Cmd Msg )
+stepLevel3 model ( level3, cmds ) =
+    ( { model | page = Level3 level3 }
+    , Cmd.map Level3Msg cmds
     )
 
 
@@ -331,24 +342,20 @@ subscriptions model =
             Home homeModel ->
                 Sub.none
 
-            Editor editorModel ->
-                Sub.map EditorMsg (Pages.Editor.subs editorModel)
-
             HighScore highScoreModel ->
                 Sub.none
 
             Settings settingsModel ->
                 Sub.none
 
-            --
-            -- Login loginModel ->
-            --     Sub.none
-            --
             Level1 level1Model ->
                 Sub.map Level1Msg (Pages.Level1.subs level1Model)
 
             Level2 level2Model ->
                 Sub.map Level2Msg (Pages.Level2.subs level2Model)
+
+            Level3 level3Model ->
+                Sub.map Level3Msg (Pages.Level3.subs level3Model)
 
             Tutorial tutorialModel ->
                 Sub.map TutorialMsg (Pages.Tutorial.subs tutorialModel)
@@ -375,29 +382,23 @@ searchView model =
         NotFound ->
             globalHomeView
 
-        --
         Home homeModel ->
             Element.map HomeMsg (Pages.Home.view homeModel)
 
-        --
-        Editor editorModel ->
-            Element.map EditorMsg (Pages.Editor.view editorModel)
-
-        --
         HighScore highScoreModel ->
             Element.map HighScoreMsg (Pages.HighScore.view highScoreModel)
 
         Settings settingsModel ->
             Element.map SettingsMsg (Pages.Settings.view settingsModel)
 
-        --
-        -- Login loginModel ->
-        --     Html.map LoginMsg (Pages.Login.view loginModel)
         Level1 level1Model ->
             Element.map Level1Msg (Pages.Level1.view level1Model)
 
         Level2 level2Model ->
             Element.map Level2Msg (Pages.Level2.view level2Model)
+
+        Level3 level3Model ->
+            Element.map Level3Msg (Pages.Level3.view level3Model)
 
         Tutorial tutorialModel ->
             Element.map TutorialMsg (Pages.Tutorial.view tutorialModel)
@@ -410,7 +411,7 @@ globalHomeView : Element Msg
 globalHomeView =
     column [ width fill, Element.height fill ]
         [ row [ Element.height fill, width fill, paddingXY 10 10, centerX, spacing 30, Background.color (rgb255 254 216 177) ]
-            [ column [ alignLeft, alignTop, centerX, Element.height shrink, width (px 400), paddingXY 20 20, spacing 15 ]
+            [ column [ alignLeft, alignTop, centerX, Element.height shrink, width (px 400), paddingXY 20 20, spacing 25 ]
                 [ Element.image [ alignTop, centerX, Element.height (px 150), width (px 250), paddingEach { top = 0, right = 0, bottom = 0, left = 20 } ] { src = "/logo.svg", description = "nah" }
                 , el [ alignTop, centerX, Font.size 50 ] (Element.text "Menu")
                 , Element.link buttonStyle
@@ -426,20 +427,16 @@ globalHomeView =
                     , url = "Level2"
                     }
                 , Element.link buttonStyle
+                    { label = Element.text "Level 3"
+                    , url = "Level3"
+                    }
+                , Element.link buttonStyle
                     { label = Element.text "Settings"
                     , url = "Settings"
                     }
                 , Element.link buttonStyle
                     { label = Element.text "High Score"
                     , url = "HighScore"
-                    }
-                , Element.link buttonStyle
-                    { label = Element.text "Editor"
-                    , url = "Editor"
-                    }
-                , Element.link buttonStyle
-                    { label = Element.text "Log In"
-                    , url = "Ano"
                     }
                 ]
             ]
