@@ -23,9 +23,9 @@ import Pages.Home
 import Pages.Levels.Level1
 import Pages.Levels.Level2
 import Pages.Levels.Level3
+import Pages.Levels.Tutorial
 import Pages.Login
 import Pages.Settings
-import Pages.Tutorial
 import Ports
 import Time
 import Url
@@ -42,7 +42,7 @@ type Page
     | Level1 Pages.Levels.Level1.Model
     | Level2 Pages.Levels.Level2.Model
     | Level3 Pages.Levels.Level3.Model
-    | Tutorial Pages.Tutorial.Model
+    | Tutorial Pages.Levels.Tutorial.Model
     | Settings Pages.Settings.Model
     | Global
     | NotFound
@@ -93,7 +93,7 @@ type Msg
     | Level1Msg Pages.Levels.Level1.Msg
     | Level2Msg Pages.Levels.Level2.Msg
     | Level3Msg Pages.Levels.Level3.Msg
-    | TutorialMsg Pages.Tutorial.Msg
+    | TutorialMsg Pages.Levels.Tutorial.Msg
     | SettingsMsg Pages.Settings.Msg
     | PlayMe Time.Posix
 
@@ -233,7 +233,7 @@ update message model =
         TutorialMsg msg ->
             case model.page of
                 Tutorial tutorial ->
-                    stepTutorial model (Pages.Tutorial.update msg tutorial)
+                    stepTutorial model (Pages.Levels.Tutorial.update msg tutorial)
 
                 _ ->
                     ( model, Cmd.none )
@@ -253,7 +253,7 @@ stepUrl url model =
                 , route (s "Level1") (stepLevel1 model (Pages.Levels.Level1.init model.user))
                 , route (s "Level2") (stepLevel2 model (Pages.Levels.Level2.init model.user))
                 , route (s "Level3") (stepLevel3 model (Pages.Levels.Level3.init model.user))
-                , route (s "Tutorial") (stepTutorial model (Pages.Tutorial.init model.user))
+                , route (s "Tutorial") (stepTutorial model (Pages.Levels.Tutorial.init model.user))
                 ]
     in
     case Parser.parse parser url of
@@ -306,7 +306,7 @@ stepLevel3 model ( level3, cmds ) =
     )
 
 
-stepTutorial : Model -> ( Pages.Tutorial.Model, Cmd Pages.Tutorial.Msg ) -> ( Model, Cmd Msg )
+stepTutorial : Model -> ( Pages.Levels.Tutorial.Model, Cmd Pages.Levels.Tutorial.Msg ) -> ( Model, Cmd Msg )
 stepTutorial model ( tutorial, cmds ) =
     ( { model | page = Tutorial tutorial }
     , Cmd.map TutorialMsg cmds
@@ -353,7 +353,7 @@ subscriptions model =
                 Sub.map Level3Msg (Pages.Levels.Level3.subs level3Model)
 
             Tutorial tutorialModel ->
-                Sub.map TutorialMsg (Pages.Tutorial.subs tutorialModel)
+                Sub.map TutorialMsg (Pages.Levels.Tutorial.subs tutorialModel)
 
             Global ->
                 Sub.none
@@ -396,7 +396,7 @@ searchView model =
             Element.map Level3Msg (Pages.Levels.Level3.view level3Model)
 
         Tutorial tutorialModel ->
-            Element.map TutorialMsg (Pages.Tutorial.view tutorialModel)
+            Element.map TutorialMsg (Pages.Levels.Tutorial.view tutorialModel)
 
         Global ->
             globalHomeView

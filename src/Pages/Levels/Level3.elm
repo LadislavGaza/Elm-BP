@@ -11,7 +11,6 @@ import Collage exposing (..)
 import Collage.Layout exposing (..)
 import Collage.Render exposing (svg)
 import Color exposing (..)
-import Debug exposing (toString)
 import Dict exposing (Dict)
 import Element as Element exposing (..)
 import Element.Background as Background
@@ -28,8 +27,8 @@ import Keyboard
 import Keyboard.Event exposing (KeyboardEvent, decodeKeyboardEvent)
 import Keyboard.Key
 import List
+import Round
 import String exposing (..)
-import Task
 import Tuple3 exposing (..)
 
 
@@ -133,7 +132,6 @@ update msg model =
         Tick dt ->
             let
                 newDt =
-                    -- dt + dt * Basics.toFloat model.localUser.extraGameSpeed
                     dt * Basics.toFloat (2 ^ model.localUser.extraGameSpeed)
 
                 newTime =
@@ -153,9 +151,6 @@ update msg model =
 
                 maxTimeHelper =
                     model.maxTime
-
-                _ =
-                    Debug.log "dt :" dt
 
                 newMaxScore =
                     50 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
@@ -291,8 +286,8 @@ view model =
             [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 50 ]
                 [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
                 , el [ alignTop, centerX ] auticka
-                , el [ alignTop, centerX ] (Element.text ("Remaning jumps:" ++ toString model.board.remainingJumps))
-                , el [ alignTop, centerX ] (Element.text ("Remaning time:" ++ toString (round model.maxTime)))
+                , el [ alignTop, centerX ] (Element.text ("Remaning jumps: " ++ String.fromInt model.board.remainingJumps))
+                , el [ alignTop, centerX ] (Element.text ("Remaning time: " ++ Round.round 1 model.maxTime))
                 , if model.board.won then
                     el
                         [ alignTop

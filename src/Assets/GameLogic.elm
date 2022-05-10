@@ -174,11 +174,11 @@ carElement car =
                 Data.Left ->
                     90
     in
-    if car.color == green then
-        Collage.image ( blockSize, blockSize ) "/car2.svg" |> Collage.rotate (degrees rotationRadians)
+    if car.color == blue then
+        Collage.image ( blockSize, blockSize ) "car1.svg" |> Collage.rotate (degrees rotationRadians)
 
     else
-        Collage.image ( blockSize, blockSize ) "/car1.svg" |> Collage.rotate (degrees rotationRadians)
+        Collage.image ( blockSize, blockSize ) "car2.svg" |> Collage.rotate (degrees rotationRadians)
 
 
 moveCars : Maybe KeyboardEvent -> Board -> Board
@@ -285,7 +285,7 @@ moveCars maybeEvent board =
                                 Just event ->
                                     case get (nextCoordsKey key event.keyCode) board of
                                         RoadEmpty ->
-                                            Dict.insert (nextCoordsKey key event.keyCode) (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = green }) acc
+                                            Dict.insert (nextCoordsKey key event.keyCode) (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = blue }) acc
 
                                         _ ->
                                             Dict.insert key (Road { movement = KeyInput, direction = newDir value.direction event.keyCode, color = value.color }) acc
@@ -362,7 +362,7 @@ moveCars maybeEvent board =
         justJustMovableCar =
             case justMovableCar of
                 Just ( point, car ) ->
-                    ( point, { movement = car.movement, direction = car.direction, color = green } )
+                    ( point, { movement = car.movement, direction = car.direction, color = blue } )
 
                 Nothing ->
                     ( ( 10, 10 ), blackCar )

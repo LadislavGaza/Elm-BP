@@ -1,4 +1,4 @@
-module Pages.Levels.Level2 exposing (..)
+module Pages.Levels.Tutorial exposing (..)
 
 import Assets.Data as Data exposing (..)
 import Assets.GameLogic exposing (..)
@@ -29,7 +29,6 @@ import Keyboard.Key
 import List
 import Round
 import String exposing (..)
-import Task
 import Tuple3 exposing (..)
 
 
@@ -38,94 +37,45 @@ import Tuple3 exposing (..)
 
 
 amountOfJumps =
-    4
+    10
 
 
 winningFieldPoint =
-    ( 5, 6 )
+    ( 3, 3 )
 
 
 boardSizeX =
-    8
+    4
 
 
 boardSizeY =
-    8
+    4
 
 
 gameDuration =
-    10
+    60
 
 
 initialBoard : User -> Board
 initialBoard user =
     { boardItself =
         Dict.fromList
-            [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Data.Right, color = blue } )
-            , ( ( 0, 1 ), RoadEmpty )
-            , ( ( 0, 2 ), RoadEmpty )
-            , ( ( 0, 3 ), Road { movement = Animated, direction = Data.Right, color = red } )
-            , ( ( 0, 4 ), Tile )
-            , ( ( 0, 5 ), RoadEmpty )
-            , ( ( 0, 6 ), RoadEmpty )
-            , ( ( 0, 7 ), RoadEmpty )
+            [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Data.Right, color = green } )
+            , ( ( 0, 1 ), Tile )
+            , ( ( 0, 2 ), Tile )
+            , ( ( 0, 3 ), Tile )
             , ( ( 1, 0 ), RoadEmpty )
-            , ( ( 1, 1 ), Tile )
-            , ( ( 1, 2 ), Tile )
-            , ( ( 1, 3 ), RoadEmpty )
-            , ( ( 1, 4 ), Tile )
-            , ( ( 1, 5 ), Road { movement = Animated, direction = Data.Down, color = red } )
-            , ( ( 1, 6 ), RoadEmpty )
-            , ( ( 1, 7 ), RoadEmpty )
-            , ( ( 2, 0 ), RoadEmpty )
-            , ( ( 2, 1 ), Road { movement = Animated, direction = Data.Right, color = red } )
-            , ( ( 2, 2 ), Tile )
-            , ( ( 2, 3 ), RoadEmpty )
-            , ( ( 2, 4 ), Tile )
-            , ( ( 2, 5 ), RoadEmpty )
-            , ( ( 2, 6 ), Tile )
-            , ( ( 2, 7 ), RoadEmpty )
+            , ( ( 1, 1 ), RoadEmpty )
+            , ( ( 1, 2 ), RoadEmpty )
+            , ( ( 1, 3 ), Road { movement = Animated, direction = Data.Right, color = red } )
+            , ( ( 2, 0 ), Tile )
+            , ( ( 2, 1 ), Tile )
+            , ( ( 2, 2 ), RoadEmpty )
+            , ( ( 2, 3 ), Tile )
             , ( ( 3, 0 ), Tile )
-            , ( ( 3, 1 ), RoadEmpty )
-            , ( ( 3, 2 ), Tile )
+            , ( ( 3, 1 ), Tile )
+            , ( ( 3, 2 ), Road { movement = Animated, direction = Data.Left, color = red } )
             , ( ( 3, 3 ), RoadEmpty )
-            , ( ( 3, 4 ), RoadEmpty )
-            , ( ( 3, 5 ), RoadEmpty )
-            , ( ( 3, 6 ), Tile )
-            , ( ( 3, 7 ), RoadEmpty )
-            , ( ( 4, 0 ), RoadEmpty )
-            , ( ( 4, 1 ), RoadEmpty )
-            , ( ( 4, 2 ), Tile )
-            , ( ( 4, 3 ), Tile )
-            , ( ( 4, 4 ), Tile )
-            , ( ( 4, 5 ), Tile )
-            , ( ( 4, 6 ), Tile )
-            , ( ( 4, 7 ), Road { movement = Animated, direction = Data.Left, color = red } )
-            , ( ( 5, 0 ), RoadEmpty )
-            , ( ( 5, 1 ), Tile )
-            , ( ( 5, 2 ), Tile )
-            , ( ( 5, 3 ), Tile )
-            , ( ( 5, 4 ), Tile )
-            , ( ( 5, 5 ), Tile )
-            , ( ( 5, 5 ), Tile )
-            , ( ( 5, 6 ), RoadEmpty )
-            , ( ( 5, 7 ), RoadEmpty )
-            , ( ( 6, 0 ), Road { movement = Animated, direction = Data.Left, color = red } )
-            , ( ( 6, 1 ), Tile )
-            , ( ( 6, 2 ), RoadEmpty )
-            , ( ( 6, 3 ), RoadEmpty )
-            , ( ( 6, 4 ), RoadEmpty )
-            , ( ( 6, 5 ), Tile )
-            , ( ( 6, 6 ), Tile )
-            , ( ( 6, 7 ), Road { movement = Animated, direction = Data.Left, color = red } )
-            , ( ( 7, 0 ), Road { movement = Animated, direction = Data.Down, color = red } )
-            , ( ( 7, 1 ), RoadEmpty )
-            , ( ( 7, 2 ), RoadEmpty )
-            , ( ( 7, 3 ), Tile )
-            , ( ( 7, 4 ), Road { movement = Animated, direction = Data.Down, color = red } )
-            , ( ( 7, 5 ), RoadEmpty )
-            , ( ( 7, 6 ), RoadEmpty )
-            , ( ( 7, 7 ), RoadEmpty )
             ]
     , remainingJumps = amountOfJumps + user.extraJumps
     , winningField = winningFieldPoint
@@ -178,7 +128,6 @@ update msg model =
         Tick dt ->
             let
                 newDt =
-                    -- dt + dt * Basics.toFloat model.localUser.extraGameSpeed
                     dt * Basics.toFloat (2 ^ model.localUser.extraGameSpeed)
 
                 newTime =
@@ -198,26 +147,6 @@ update msg model =
 
                 maxTimeHelper =
                     model.maxTime
-
-                _ =
-                    Debug.log "dt :" dt
-
-                newMaxScore =
-                    50 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
-
-                newUser =
-                    { extraJumps = model.localUser.extraJumps
-                    , extraGameSpeed = model.localUser.extraGameSpeed
-                    , extraDuration = model.localUser.extraDuration
-                    , level1HS = model.localUser.level1HS
-                    , level2HS = model.localUser.level2HS
-                    , level3HS =
-                        if model.localUser.level3HS < newMaxScore then
-                            newMaxScore
-
-                        else
-                            model.localUser.level3HS
-                    }
             in
             ( { model
                 | board =
@@ -239,12 +168,6 @@ update msg model =
 
                     else
                         0
-                , localUser =
-                    if model.board.won == True then
-                        newUser
-
-                    else
-                        model.localUser
               }
             , Cmd.none
             )
@@ -333,7 +256,7 @@ view model =
             , Element.htmlAttribute (tabindex 0)
             , Element.htmlAttribute (autofocus True)
             ]
-            [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 40 ]
+            [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 50 ]
                 [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
                 , el [ alignTop, centerX ] auticka
                 , el [ alignTop, centerX ] (Element.text ("Remaning jumps: " ++ String.fromInt model.board.remainingJumps))
