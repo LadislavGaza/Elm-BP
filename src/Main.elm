@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Assets.Style exposing (..)
 import Browser exposing (Document)
 import Browser.Events exposing (onClick)
 import Browser.Navigation as Nav
@@ -443,22 +444,6 @@ globalHomeView =
                 ]
             ]
         ]
-
-
-buttonStyle : List (Element.Attribute msg)
-buttonStyle =
-    [ width (px 300)
-    , Background.color (rgb255 57 124 213)
-    , Font.color (rgb 1 1 1)
-    , paddingXY 14 10
-
-    -- , style "margin-top" "10px"
-    -- , style "margin-left" "10px"
-    , Border.rounded 10
-    , Font.size 20
-    , Font.center
-    , centerX
-    ]
 
 
 
