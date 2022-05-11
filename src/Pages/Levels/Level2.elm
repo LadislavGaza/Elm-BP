@@ -290,7 +290,7 @@ oneField ( point, field ) winner =
 view : Model -> Element Msg
 view model =
     let
-        auticka =
+        carsElement =
             Element.html (boardElement model |> svg)
     in
     column [ Element.width fill, Element.height fill ]
@@ -310,7 +310,7 @@ view model =
             ]
             [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 40 ]
                 [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
-                , el [ alignTop, centerX ] auticka
+                , el [ alignTop, centerX ] carsElement
                 , el [ alignTop, centerX ] (Element.text ("Remaning jumps: " ++ String.fromInt model.board.remainingJumps))
                 , el [ alignTop, centerX ] (Element.text ("Remaning time: " ++ Round.round 1 model.maxTime))
                 , if model.board.won then

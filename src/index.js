@@ -15,11 +15,6 @@ app.ports.storeUser.subscribe(function (user) {
     localStorage.setItem('user', postsJson);
 });
 
-// app.ports.play.subscribe(function (data) {
-//           var x = document.getElementById("game-song");
-// 		  data ? x.play() : x.pause();
-//       })
-
 window.addEventListener("storage", function(event) {
         if (event.storageArea === localStorage && event.key === storageKey) {
           app.ports.onStoreChange.send(event.newValue);
