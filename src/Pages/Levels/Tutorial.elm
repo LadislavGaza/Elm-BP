@@ -3,33 +3,22 @@ module Pages.Levels.Tutorial exposing (..)
 import Assets.Data as Data exposing (..)
 import Assets.GameLogic exposing (..)
 import Assets.Style exposing (..)
-import Browser exposing (element)
-import Browser.Dom as Dom
 import Browser.Events exposing (onAnimationFrameDelta)
-import Char exposing (..)
 import Collage exposing (..)
 import Collage.Layout exposing (..)
 import Collage.Render exposing (svg)
 import Color exposing (..)
-import Dict exposing (Dict)
-import Element as Element exposing (..)
+import Dict
+import Element exposing (..)
 import Element.Background as Background
-import Element.Border as Border
 import Element.Font as Font
-import Element.Input as Input
-import Element.Region as Region
-import Html exposing (Attribute, Html, div, h1, h3, p, pre, text, th)
-import Html.Attributes exposing (autofocus, id, style, tabindex)
+import Html.Attributes exposing (autofocus, tabindex)
 import Html.Events exposing (on)
-import Json.Decode as Json exposing (..)
-import Json.Encode as Encode exposing (..)
-import Keyboard
+import Json.Decode as Json
 import Keyboard.Event exposing (KeyboardEvent, decodeKeyboardEvent)
-import Keyboard.Key
 import List
 import Round
-import String exposing (..)
-import Tuple3 exposing (..)
+import String
 
 
 
@@ -89,7 +78,6 @@ initialBoard user =
 
 type Msg
     = HandleKeyboardEvent KeyboardEvent
-    | NoOp
     | Tick Delta
 
 
@@ -130,9 +118,6 @@ update msg model =
                 newDt =
                     dt * Basics.toFloat (2 ^ model.localUser.extraGameSpeed)
 
-                newTime =
-                    model.time + dt
-
                 newTimeDt =
                     model.time + newDt
 
@@ -144,9 +129,6 @@ update msg model =
 
                 shouldUpdate =
                     secsPassed /= newSecs
-
-                maxTimeHelper =
-                    model.maxTime
             in
             ( { model
                 | board =
@@ -171,9 +153,6 @@ update msg model =
               }
             , Cmd.none
             )
-
-        NoOp ->
-            ( model, Cmd.none )
 
 
 boardElement : Model -> Collage Msg

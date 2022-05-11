@@ -1,33 +1,13 @@
 module Pages.Settings exposing (..)
 
-import Assets.Data as Data exposing (..)
+import Assets.Data exposing (..)
 import Assets.Style exposing (..)
-import Browser exposing (element)
-import Browser.Dom as Dom
-import Browser.Events exposing (onAnimationFrameDelta)
-import Char exposing (..)
-import Collage exposing (..)
-import Collage.Layout exposing (..)
-import Collage.Render exposing (svg)
-import Color exposing (..)
-import Dict exposing (Dict)
-import Dict.Extra as Extra
-import Element as Element exposing (..)
+import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Element.Region as Region
-import Html exposing (Attribute, Html, div, h1, h3, p, pre, text)
-import Html.Attributes exposing (autofocus, id, style, tabindex)
-import Html.Events exposing (on)
-import Json.Decode as Json exposing (..)
-import Json.Encode as Encode exposing (..)
-import Keyboard
-import Keyboard.Event exposing (KeyboardEvent, decodeKeyboardEvent)
-import Keyboard.Key
-import List
-import String exposing (..)
+import String
 
 
 

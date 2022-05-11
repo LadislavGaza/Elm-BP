@@ -1,14 +1,9 @@
 module Pages.Home exposing (..)
 
 import Assets.Style exposing (..)
-import Browser
 import Element exposing (..)
 import Element.Background as Background
-import Element.Border as Border
 import Element.Font as Font
-import Element.Region as Region
-import Html exposing (Html, button, div, h1, img, text)
-import Html.Attributes exposing (autofocus, src, style, type_)
 
 
 

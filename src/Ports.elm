@@ -1,6 +1,5 @@
 port module Ports exposing (..)
 
-import Assets.Data as Data exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 

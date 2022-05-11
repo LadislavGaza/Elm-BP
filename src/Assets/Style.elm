@@ -1,11 +1,9 @@
 module Assets.Style exposing (..)
 
-import Element as Element exposing (..)
+import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
-import Html
-import Html.Attributes exposing (style)
 
 
 buttonStyle : List (Element.Attribute msg)

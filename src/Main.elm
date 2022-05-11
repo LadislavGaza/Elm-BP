@@ -1,35 +1,24 @@
 module Main exposing (..)
 
-import Assets.Data as Data exposing (..)
+import Assets.Data exposing (..)
 import Assets.Style exposing (..)
-import Browser exposing (Document)
-import Browser.Events exposing (onClick)
+import Browser
 import Browser.Navigation as Nav
-import Collage.Layout exposing (height)
-import Color
-import Element as Element exposing (..)
+import Element exposing (..)
 import Element.Background as Background
-import Element.Border as Border
 import Element.Font as Font
-import Element.Input as Input
-import Html as Html exposing (Html, a, button, div, h1, img, text)
-import Html.Attributes exposing (href, src, style, type_)
-import Html.Events exposing (onClick)
-import Json.Decode as Decode
 import Json.Encode as Encode
-import Pages.Editor
 import Pages.HighScore
 import Pages.Home
 import Pages.Levels.Level1
 import Pages.Levels.Level2
 import Pages.Levels.Level3
 import Pages.Levels.Tutorial
-import Pages.Login
 import Pages.Settings
 import Ports
 import Time
 import Url
-import Url.Parser as Parser exposing ((</>), Parser, custom, fragment, map, oneOf, s, top)
+import Url.Parser as Parser exposing (Parser, oneOf, s)
 
 
 
@@ -334,13 +323,13 @@ subscriptions model =
             NotFound ->
                 Sub.none
 
-            Home homeModel ->
+            Home _ ->
                 Sub.none
 
-            HighScore highScoreModel ->
+            HighScore _ ->
                 Sub.none
 
-            Settings settingsModel ->
+            Settings _ ->
                 Sub.none
 
             Level1 level1Model ->

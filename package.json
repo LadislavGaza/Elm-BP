@@ -2,7 +2,7 @@
   "dependencies": {
     "webpack": "^5.69.1"
   },
-  "scripts":{
-	  "start": "set NODE_OPTIONS=--openssl-legacy-provider & elm-app start"
+  "scripts": {
+    "start": "set NODE_OPTIONS=--openssl-legacy-provider & elm-app start"
   }
 }
