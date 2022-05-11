@@ -38,11 +38,11 @@ import Tuple3 exposing (..)
 
 
 amountOfJumps =
-    5
+    3
 
 
 winningFieldPoint =
-    ( 3, 3 )
+    ( 4, 0 )
 
 
 boardSizeX =
@@ -50,37 +50,42 @@ boardSizeX =
 
 
 boardSizeY =
-    4
+    5
 
 
 gameDuration =
-    10
+    15
 
 
 initialBoard : User -> Board
 initialBoard user =
     { boardItself =
         Dict.fromList
-            [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Data.Right, color = green } )
-            , ( ( 0, 1 ), Tile )
-            , ( ( 0, 2 ), Tile )
-            , ( ( 0, 3 ), Tile )
-            , ( ( 1, 0 ), RoadEmpty )
+            [ ( ( 0, 0 ), Tile )
+            , ( ( 0, 1 ), Road { movement = Animated, direction = Data.Right, color = red } )
+            , ( ( 0, 2 ), RoadEmpty )
+            , ( ( 0, 3 ), Road { movement = Animated, direction = Data.Up, color = red } )
+            , ( ( 0, 4 ), Road { movement = KeyInput, direction = Data.Up, color = blue } )
+            , ( ( 1, 0 ), Tile )
             , ( ( 1, 1 ), RoadEmpty )
-            , ( ( 1, 2 ), RoadEmpty )
-            , ( ( 1, 3 ), Road { movement = Animated, direction = Data.Right, color = red } )
-            , ( ( 2, 0 ), Tile )
-            , ( ( 2, 1 ), Tile )
+            , ( ( 1, 2 ), Tile )
+            , ( ( 1, 3 ), Tile )
+            , ( ( 1, 4 ), Tile )
+            , ( ( 2, 0 ), RoadEmpty )
+            , ( ( 2, 1 ), Road { movement = Animated, direction = Data.Down, color = red } )
             , ( ( 2, 2 ), RoadEmpty )
-            , ( ( 2, 3 ), Tile )
+            , ( ( 2, 3 ), RoadEmpty )
+            , ( ( 2, 4 ), Tile )
             , ( ( 3, 0 ), Tile )
             , ( ( 3, 1 ), Tile )
-            , ( ( 3, 2 ), Road { movement = Animated, direction = Data.Left, color = red } )
+            , ( ( 3, 2 ), Tile )
             , ( ( 3, 3 ), RoadEmpty )
+            , ( ( 3, 4 ), Tile )
             , ( ( 4, 0 ), RoadEmpty )
-            , ( ( 4, 1 ), RoadEmpty )
+            , ( ( 4, 1 ), Road { movement = Animated, direction = Data.Down, color = red } )
             , ( ( 4, 2 ), RoadEmpty )
-            , ( ( 4, 3 ), RoadEmpty )
+            , ( ( 4, 3 ), Road { movement = Animated, direction = Data.Down, color = red } )
+            , ( ( 4, 4 ), RoadEmpty )
             ]
     , remainingJumps = amountOfJumps + user.extraJumps
     , winningField = winningFieldPoint
@@ -158,20 +163,20 @@ update msg model =
                     Debug.log "dt :" dt
 
                 newMaxScore =
-                    50 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
+                    100 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
 
                 newUser =
                     { extraJumps = model.localUser.extraJumps
                     , extraGameSpeed = model.localUser.extraGameSpeed
                     , extraDuration = model.localUser.extraDuration
-                    , level1HS = model.localUser.level1HS
-                    , level2HS = model.localUser.level2HS
-                    , level3HS =
-                        if model.localUser.level3HS < newMaxScore then
+                    , level1HS =
+                        if model.localUser.level1HS < newMaxScore then
                             newMaxScore
 
                         else
-                            model.localUser.level3HS
+                            model.localUser.level1HS
+                    , level2HS = model.localUser.level2HS
+                    , level3HS = model.localUser.level3HS
                     }
             in
             ( { model
@@ -301,7 +306,7 @@ view model =
                         , Font.bold
                         , Font.color (Element.rgb 0 1 0)
                         ]
-                        (Element.text "Vyhral si!")
+                        (Element.text "You won!")
 
                   else if model.maxTime <= 0 then
                     el
@@ -311,7 +316,7 @@ view model =
                         , Font.bold
                         , Font.color (Element.rgb 1 0 0)
                         ]
-                        (Element.text "Prehral si!")
+                        (Element.text "You lost!")
 
                   else
                     el [] (Element.text "")

@@ -153,7 +153,7 @@ update msg model =
                     model.maxTime
 
                 newMaxScore =
-                    50 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
+                    100 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
 
                 newUser =
                     { extraJumps = model.localUser.extraJumps
@@ -296,7 +296,7 @@ view model =
                         , Font.bold
                         , Font.color (Element.rgb 0 1 0)
                         ]
-                        (Element.text "Vyhral si!")
+                        (Element.text "You won!")
 
                   else if model.maxTime <= 0 then
                     el
@@ -306,7 +306,7 @@ view model =
                         , Font.bold
                         , Font.color (Element.rgb 1 0 0)
                         ]
-                        (Element.text "Prehral si!")
+                        (Element.text "You lost!")
 
                   else
                     el [] (Element.text "")
