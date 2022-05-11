@@ -317,7 +317,7 @@ view model =
                             }
                         ]
                         (Element.text "Green ")
-                    , el [ alignTop, centerX, Font.size 25 ] (Element.text "tiles are empty forest that you have to go around. You can only move on a road marked as ")
+                    , el [ alignTop, centerX, Font.size 25 ] (Element.text "tiles are forest that you cannot enter. You can only move on a road marked as ")
                     , el
                         [ alignTop
                         , centerX

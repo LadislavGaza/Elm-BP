@@ -347,9 +347,6 @@ moveCars maybeEvent board =
                 Nothing ->
                     Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
 
-        _ =
-            Debug.log "helperAllAnimated :" helperAllAnimated
-
         movableCarField =
             Dict.filter hasMovableCar board.boardItself
 
@@ -366,13 +363,6 @@ moveCars maybeEvent board =
 
                 Nothing ->
                     ( ( 10, 10 ), blackCar )
-
-        _ =
-            Debug.log "justMovableCar :" justMovableCar
-
-        _ =
-            Debug.log "insorted:"
-                insorted
 
         finalFinal =
             case maybeEvent of

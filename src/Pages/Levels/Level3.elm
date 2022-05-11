@@ -37,19 +37,19 @@ import Tuple3 exposing (..)
 
 
 amountOfJumps =
-    5
+    2
 
 
 winningFieldPoint =
-    ( 3, 3 )
+    ( 13, 1 )
 
 
 boardSizeX =
-    5
+    14
 
 
 boardSizeY =
-    4
+    2
 
 
 gameDuration =
@@ -60,26 +60,34 @@ initialBoard : User -> Board
 initialBoard user =
     { boardItself =
         Dict.fromList
-            [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Data.Right, color = green } )
-            , ( ( 0, 1 ), Tile )
-            , ( ( 0, 2 ), Tile )
-            , ( ( 0, 3 ), Tile )
-            , ( ( 1, 0 ), RoadEmpty )
+            [ ( ( 0, 0 ), Road { movement = KeyInput, direction = Data.Right, color = blue } )
+            , ( ( 0, 1 ), RoadEmpty )
+            , ( ( 1, 0 ), Road { movement = Animated, direction = Data.Right, color = red } )
             , ( ( 1, 1 ), RoadEmpty )
-            , ( ( 1, 2 ), RoadEmpty )
-            , ( ( 1, 3 ), Road { movement = Animated, direction = Data.Right, color = red } )
-            , ( ( 2, 0 ), Tile )
-            , ( ( 2, 1 ), Tile )
-            , ( ( 2, 2 ), RoadEmpty )
-            , ( ( 2, 3 ), Tile )
-            , ( ( 3, 0 ), Tile )
-            , ( ( 3, 1 ), Tile )
-            , ( ( 3, 2 ), Road { movement = Animated, direction = Data.Left, color = red } )
-            , ( ( 3, 3 ), RoadEmpty )
-            , ( ( 4, 0 ), RoadEmpty )
+            , ( ( 2, 0 ), RoadEmpty )
+            , ( ( 2, 1 ), Road { movement = Animated, direction = Data.Left, color = red } )
+            , ( ( 3, 0 ), RoadEmpty )
+            , ( ( 3, 1 ), RoadEmpty )
+            , ( ( 4, 0 ), Road { movement = Animated, direction = Data.Right, color = red } )
             , ( ( 4, 1 ), RoadEmpty )
-            , ( ( 4, 2 ), RoadEmpty )
-            , ( ( 4, 3 ), RoadEmpty )
+            , ( ( 5, 0 ), RoadEmpty )
+            , ( ( 5, 1 ), RoadEmpty )
+            , ( ( 6, 0 ), RoadEmpty )
+            , ( ( 6, 1 ), RoadEmpty )
+            , ( ( 7, 0 ), RoadEmpty )
+            , ( ( 7, 1 ), Road { movement = Animated, direction = Data.Left, color = red } )
+            , ( ( 8, 0 ), Road { movement = Animated, direction = Data.Right, color = red } )
+            , ( ( 8, 1 ), RoadEmpty )
+            , ( ( 9, 0 ), RoadEmpty )
+            , ( ( 9, 1 ), Road { movement = Animated, direction = Data.Left, color = red } )
+            , ( ( 10, 0 ), RoadEmpty )
+            , ( ( 10, 1 ), RoadEmpty )
+            , ( ( 11, 0 ), Road { movement = Animated, direction = Data.Right, color = red } )
+            , ( ( 11, 1 ), RoadEmpty )
+            , ( ( 12, 0 ), RoadEmpty )
+            , ( ( 12, 1 ), RoadEmpty )
+            , ( ( 13, 0 ), Road { movement = Animated, direction = Data.Down, color = red } )
+            , ( ( 13, 1 ), RoadEmpty )
             ]
     , remainingJumps = amountOfJumps + user.extraJumps
     , winningField = winningFieldPoint

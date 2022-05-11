@@ -199,9 +199,6 @@ update msg model =
                 maxTimeHelper =
                     model.maxTime
 
-                _ =
-                    Debug.log "dt :" dt
-
                 newMaxScore =
                     100 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
 
