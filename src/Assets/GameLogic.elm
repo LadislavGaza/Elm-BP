@@ -53,32 +53,7 @@ getPointField coords board =
 
 updateBoard : Board -> Board
 updateBoard board =
-    -- Dict.map (\_ c -> updateCar c) cars
     let
-        hasCar point field =
-            case field of
-                Road _ ->
-                    True
-
-                RoadEmpty ->
-                    False
-
-                Tile ->
-                    False
-
-                Empty ->
-                    False
-
-        -- blackCar =
-        --     { movement = Animated, direction = Right, color = black }
-        takeCar ( point, field ) =
-            case field of
-                Road car ->
-                    ( point, car )
-
-                _ ->
-                    ( point, { movement = Animated, direction = Data.Down, color = white } )
-
         carFields =
             Dict.filter hasCar board.boardItself
 
@@ -160,7 +135,7 @@ rotateCar car =
 carElement : Car -> Collage msg
 carElement car =
     let
-        rotationRadians =
+        rotationDegrees =
             case car.direction of
                 Data.Up ->
                     0
@@ -175,29 +150,41 @@ carElement car =
                     90
     in
     if car.color == blue then
-        Collage.image ( blockSize, blockSize ) "car1.svg" |> Collage.rotate (degrees rotationRadians)
+        Collage.image ( blockSize, blockSize ) "car1.svg" |> Collage.rotate (degrees rotationDegrees)
 
     else
-        Collage.image ( blockSize, blockSize ) "car2.svg" |> Collage.rotate (degrees rotationRadians)
+        Collage.image ( blockSize, blockSize ) "car2.svg" |> Collage.rotate (degrees rotationDegrees)
+
+
+takeCar : ( Data.Point, Field ) -> ( Data.Point, Car )
+takeCar ( point, field ) =
+    case field of
+        Road car ->
+            ( point, car )
+
+        _ ->
+            ( point, { movement = Animated, direction = Data.Down, color = white } )
+
+
+hasCar : Data.Point -> Field -> Bool
+hasCar point field =
+    case field of
+        Road _ ->
+            True
+
+        RoadEmpty ->
+            False
+
+        Tile ->
+            False
+
+        Empty ->
+            False
 
 
 moveCars : Maybe KeyboardEvent -> Board -> Board
 moveCars maybeEvent board =
     let
-        hasCar point field =
-            case field of
-                Road _ ->
-                    True
-
-                RoadEmpty ->
-                    False
-
-                Tile ->
-                    False
-
-                Empty ->
-                    False
-
         hasMovableCar point field =
             case field of
                 Road possibleCar ->
@@ -219,14 +206,6 @@ moveCars maybeEvent board =
 
         blackCar =
             { movement = Animated, direction = Data.Right, color = black }
-
-        takeCar ( point, field ) =
-            case field of
-                Road car ->
-                    ( point, car )
-
-                _ ->
-                    ( point, { movement = Animated, direction = Data.Down, color = white } )
 
         nextCoordsKey ( x, y ) key =
             case key of
@@ -299,13 +278,12 @@ moveCars maybeEvent board =
         helperAllAnimated =
             Dict.foldl
                 (\key value acc ->
-                    -- Dict.insert key (Road { movement = Animated, direction = value.direction, color = value.color }) acc
                     Dict.insert key (Road { movement = Animated, direction = value.direction, color = red }) acc
                 )
                 Dict.empty
                 helperCarFieldsDict
 
-        insorted =
+        helperInsertedAnimated =
             case maybeEvent of
                 Just event ->
                     case event.keyCode of
@@ -364,109 +342,52 @@ moveCars maybeEvent board =
                 Nothing ->
                     ( ( 10, 10 ), blackCar )
 
-        finalFinal =
+        chosenDictWinning eventKey =
+            case get (nextCoordsKey (Tuple.first justJustMovableCar) eventKey) board of
+                Road _ ->
+                    if board.remainingJumps > 0 then
+                        ( helperInsertedAnimated, board.remainingJumps - 1, True )
+
+                    else
+                        ( helperMovedCars, board.remainingJumps, False )
+
+                _ ->
+                    ( helperMovedCars, board.remainingJumps, True )
+
+        chosenDictNotWinning eventKey =
+            case get (nextCoordsKey (Tuple.first justJustMovableCar) eventKey) board of
+                Road _ ->
+                    if board.remainingJumps > 0 then
+                        ( helperInsertedAnimated, board.remainingJumps - 1, False )
+
+                    else
+                        ( helperMovedCars, board.remainingJumps, False )
+
+                _ ->
+                    ( helperMovedCars, board.remainingJumps, False )
+
+        chosenDictFinal eventKey =
+            if nextCoordsKey (Tuple.first justJustMovableCar) eventKey == board.winningField then
+                chosenDictWinning eventKey
+
+            else
+                chosenDictNotWinning eventKey
+
+        finalMoved =
             case maybeEvent of
                 Just event ->
                     case event.keyCode of
                         Keyboard.Key.Up ->
-                            if nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode == board.winningField then
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, True )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, True )
-
-                            else
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, False )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, False )
+                            chosenDictFinal event.keyCode
 
                         Keyboard.Key.Right ->
-                            if nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode == board.winningField then
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, True )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, True )
-
-                            else
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, False )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, False )
+                            chosenDictFinal event.keyCode
 
                         Keyboard.Key.Down ->
-                            if nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode == board.winningField then
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, True )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, True )
-
-                            else
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, False )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, False )
+                            chosenDictFinal event.keyCode
 
                         Keyboard.Key.Left ->
-                            if nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode == board.winningField then
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, True )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, True )
-
-                            else
-                                case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                    Road _ ->
-                                        if board.remainingJumps > 0 then
-                                            ( insorted, board.remainingJumps - 1, False )
-
-                                        else
-                                            ( helperMovedCars, board.remainingJumps, False )
-
-                                    _ ->
-                                        ( helperMovedCars, board.remainingJumps, False )
+                            chosenDictFinal event.keyCode
 
                         _ ->
                             ( carFields, board.remainingJumps, False )
@@ -499,8 +420,8 @@ moveCars maybeEvent board =
                     (\key _ b -> Dict.insert key b)
                     (\key b -> Dict.insert key b)
                     clearedBoard
-                    (Tuple3.first finalFinal)
+                    (Tuple3.first finalMoved)
                     Dict.empty
-            , remainingJumps = Tuple3.second finalFinal
-            , won = Tuple3.third finalFinal
+            , remainingJumps = Tuple3.second finalMoved
+            , won = Tuple3.third finalMoved
         }

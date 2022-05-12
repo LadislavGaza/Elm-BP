@@ -292,7 +292,7 @@ view model =
                         , Font.shadow
                             { offset = ( 0, 0 )
                             , blur = 5
-                            , color = Element.rgb 0 0 0
+                            , color = Element.rgb 1 1 1
                             }
                         ]
                         (Element.text "Green ")
@@ -305,7 +305,7 @@ view model =
                         , Font.shadow
                             { offset = ( 0, 0 )
                             , blur = 5
-                            , color = Element.rgb 0 0 0
+                            , color = Element.rgb 1 1 1
                             }
                         ]
                         (Element.text "gray ")
@@ -322,6 +322,10 @@ view model =
                     ]
                 , paragraph []
                     [ el [ alignTop, centerX, Font.size 25 ] (Element.text "Changing these parameters affects your final score which you can see in the High Score page. If you increase jumps or duration your final high score will go down and vice versa. If you increase speed your final high score will go up and vice versa.")
+                    ]
+                , paragraph []
+                    [ el [ alignTop, centerX, Font.size 25, Font.bold ] (Element.text "Attention! ")
+                    , el [ alignTop, centerX, Font.size 25 ] (Element.text "If keyboard input does not work try clicking anywhere nearby the animated game grid.")
                     ]
                 ]
             ]
