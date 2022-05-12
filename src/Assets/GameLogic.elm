@@ -283,41 +283,29 @@ moveCars maybeEvent board =
                 Dict.empty
                 helperCarFieldsDict
 
+        helperInsertedRow eventKey =
+            case get (nextCoordsKey (Tuple.first justJustMovableCar) eventKey) board of
+                Road _ ->
+                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) eventKey) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
+                _ ->
+                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+
         helperInsertedAnimated =
             case maybeEvent of
                 Just event ->
                     case event.keyCode of
                         Keyboard.Key.Up ->
-                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                Road _ ->
-                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
-
-                                _ ->
-                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+                            helperInsertedRow event.keyCode
 
                         Keyboard.Key.Right ->
-                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                Road _ ->
-                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
-
-                                _ ->
-                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+                            helperInsertedRow event.keyCode
 
                         Keyboard.Key.Down ->
-                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                Road _ ->
-                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
-
-                                _ ->
-                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+                            helperInsertedRow event.keyCode
 
                         Keyboard.Key.Left ->
-                            case get (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) board of
-                                Road _ ->
-                                    Dict.insert (nextCoordsKey (Tuple.first justJustMovableCar) event.keyCode) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
-
-                                _ ->
-                                    Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
+                            helperInsertedRow event.keyCode
 
                         _ ->
                             Dict.insert (Tuple.first justJustMovableCar) (Road (Tuple.second justJustMovableCar)) helperAllAnimated
