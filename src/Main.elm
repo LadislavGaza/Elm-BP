@@ -67,7 +67,7 @@ init maybeUser url key =
                 Just u ->
                     u
     in
-    ( Model key url Global user, Ports.play (Encode.bool True) )
+    ( Model key url Global user, Cmd.none )
 
 
 
@@ -84,7 +84,6 @@ type Msg
     | Level3Msg Pages.Levels.Level3.Msg
     | TutorialMsg Pages.Levels.Tutorial.Msg
     | SettingsMsg Pages.Settings.Msg
-    | PlayMe Time.Posix
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -121,7 +120,6 @@ update message model =
         SettingsMsg msg ->
             case model.page of
                 Settings settings ->
-                    -- stepSettings model (Pages.Settings.update msg settings)
                     let
                         ( newChildModel, newChildCmd ) =
                             Pages.Settings.update msg settings
@@ -227,9 +225,6 @@ update message model =
                 _ ->
                     ( model, Cmd.none )
 
-        PlayMe _ ->
-            ( model, Ports.play (Encode.bool True) )
-
 
 stepUrl : Url.Url -> Model -> ( Model, Cmd Msg )
 stepUrl url model =
@@ -317,36 +312,33 @@ route parser handler =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ Time.every 5000 PlayMe
-        , case model.page of
-            NotFound ->
-                Sub.none
+    case model.page of
+        NotFound ->
+            Sub.none
 
-            Home _ ->
-                Sub.none
+        Home _ ->
+            Sub.none
 
-            HighScore _ ->
-                Sub.none
+        HighScore _ ->
+            Sub.none
 
-            Settings _ ->
-                Sub.none
+        Settings _ ->
+            Sub.none
 
-            Level1 level1Model ->
-                Sub.map Level1Msg (Pages.Levels.Level1.subs level1Model)
+        Level1 level1Model ->
+            Sub.map Level1Msg (Pages.Levels.Level1.subs level1Model)
 
-            Level2 level2Model ->
-                Sub.map Level2Msg (Pages.Levels.Level2.subs level2Model)
+        Level2 level2Model ->
+            Sub.map Level2Msg (Pages.Levels.Level2.subs level2Model)
 
-            Level3 level3Model ->
-                Sub.map Level3Msg (Pages.Levels.Level3.subs level3Model)
+        Level3 level3Model ->
+            Sub.map Level3Msg (Pages.Levels.Level3.subs level3Model)
 
-            Tutorial tutorialModel ->
-                Sub.map TutorialMsg (Pages.Levels.Tutorial.subs tutorialModel)
+        Tutorial tutorialModel ->
+            Sub.map TutorialMsg (Pages.Levels.Tutorial.subs tutorialModel)
 
-            Global ->
-                Sub.none
-        ]
+        Global ->
+            Sub.none
 
 
 
@@ -429,7 +421,6 @@ globalHomeView =
 
 
 ----PORTS----
---
 
 
 encodeUser : User -> Cmd msg
