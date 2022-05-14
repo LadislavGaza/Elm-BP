@@ -125,8 +125,16 @@ update msg model =
         Tick dt ->
             let
                 newDt =
-                    -- dt + dt * Basics.toFloat model.localUser.extraGameSpeed
                     dt * Basics.toFloat (2 ^ model.localUser.extraGameSpeed)
+
+                _ =
+                    Debug.log "secsPassed :" secsPassed
+
+                _ =
+                    Debug.log "newSecs :" newSecs
+
+                _ =
+                    Debug.log "shouldUpdate :" shouldUpdate
 
                 newTimeDt =
                     model.time + newDt
@@ -140,8 +148,6 @@ update msg model =
                 shouldUpdate =
                     secsPassed /= newSecs
 
-                -- _ =
-                --     Debug.log "dt :" dt
                 newMaxScore =
                     100 + model.board.remainingJumps * 10 - model.localUser.extraJumps * 2 - (gameDuration + model.localUser.extraDuration) + model.localUser.extraGameSpeed * 10
 
@@ -271,7 +277,7 @@ view model =
             , Element.htmlAttribute (autofocus True)
             ]
             [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 50 ]
-                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
+                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level 1")
                 , el [ alignTop, centerX ] carsElement
                 , el [ alignTop, centerX ] (Element.text ("Remaning jumps: " ++ String.fromInt model.board.remainingJumps))
                 , el [ alignTop, centerX ] (Element.text ("Remaning time: " ++ Round.round 1 model.maxTime))

@@ -309,7 +309,7 @@ view model =
             , Element.htmlAttribute (autofocus True)
             ]
             [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 400), paddingXY 20 20, spacing 40 ]
-                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level")
+                [ el [ alignTop, centerX, Font.size 50 ] (Element.text "Level 2")
                 , el [ alignTop, centerX ] carsElement
                 , el [ alignTop, centerX ] (Element.text ("Remaning jumps: " ++ String.fromInt model.board.remainingJumps))
                 , el [ alignTop, centerX ] (Element.text ("Remaning time: " ++ Round.round 1 model.maxTime))

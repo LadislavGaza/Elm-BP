@@ -109,6 +109,10 @@ view model =
         ]
 
 
+
+--https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element-Input#slider
+
+
 sliderJumps : Model -> Element Msg
 sliderJumps model =
     Input.slider
