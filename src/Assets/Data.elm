@@ -15,7 +15,7 @@ type alias User =
 
 
 tileColor =
-    lightGreen
+    green
 
 
 roadColor =

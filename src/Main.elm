@@ -22,6 +22,8 @@ import Url.Parser as Parser exposing (Parser, oneOf, s)
 
 
 
+-- https://github.com/harbingerr/Elm-Game/blob/master/src/Main.elm
+-- https://github.com/elm/package.elm-lang.org/blob/master/src/frontend/Main.elm
 ---- MODEL ----
 
 
