@@ -212,7 +212,10 @@ update msg model =
                         model.board
                 , time = newTimeDt
                 , maxTime =
-                    if model.maxTime - dt > 0 then
+                    if model.board.won then
+                        model.maxTime
+
+                    else if model.maxTime - dt > 0 then
                         model.maxTime - dt
 
                     else

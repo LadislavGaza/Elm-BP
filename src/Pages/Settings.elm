@@ -91,7 +91,7 @@ view model =
             , Element.width fill
             , paddingXY 10 10
             , centerX
-            , spacing 40
+            , spacing 60
             , Background.color (Element.rgb255 254 216 177)
             , alignTop
             ]
@@ -133,7 +133,13 @@ sliderJumps model =
         { onChange = round >> Jumps
         , label =
             Input.labelAbove []
-                (Element.text ("Extra jumps: " ++ String.fromInt model.localUser.extraJumps))
+                (Element.textColumn [ centerX, spacing 20 ]
+                    [ el [ Font.bold ] (Element.text ("Extra jumps: " ++ String.fromInt model.localUser.extraJumps))
+                    , paragraph []
+                        [ el [ width (px 350) ] (Element.text "Aditional jumps. Increasing this value lowers your score and vice versa.")
+                        ]
+                    ]
+                )
         , min = -2
         , max = 2
         , step = Just 1
@@ -163,7 +169,13 @@ sliderSpeed model =
         { onChange = round >> Speed
         , label =
             Input.labelAbove []
-                (Element.text ("Extra speed: " ++ String.fromInt model.localUser.extraGameSpeed))
+                (Element.textColumn [ centerX, spacing 20 ]
+                    [ el [ Font.bold ] (Element.text ("Extra speed: " ++ String.fromInt model.localUser.extraGameSpeed))
+                    , paragraph []
+                        [ el [ width (px 350) ] (Element.text "Changing how often cars more. 1 makes car move more often and increases your score, -1 makes car moves less often and decreases it.")
+                        ]
+                    ]
+                )
         , min = -1
         , max = 1
         , step = Just 1
@@ -193,7 +205,13 @@ sliderDuration model =
         { onChange = round >> Duration
         , label =
             Input.labelAbove []
-                (Element.text ("Extra duration: " ++ String.fromInt model.localUser.extraDuration))
+                (Element.textColumn [ centerX, spacing 20 ]
+                    [ el [ Font.bold ] (Element.text ("Extra duration: " ++ String.fromInt model.localUser.extraDuration))
+                    , paragraph []
+                        [ el [ width (px 350) ] (Element.text "Addiotional time of level completion. Increasing this value lowers your score and vice versa.")
+                        ]
+                    ]
+                )
         , min = -5
         , max = 5
         , step = Just 1

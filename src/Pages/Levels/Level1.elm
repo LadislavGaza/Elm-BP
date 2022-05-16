@@ -127,15 +127,6 @@ update msg model =
                 newDt =
                     dt * Basics.toFloat (2 ^ model.localUser.extraGameSpeed)
 
-                _ =
-                    Debug.log "secsPassed :" secsPassed
-
-                _ =
-                    Debug.log "newSecs :" newSecs
-
-                _ =
-                    Debug.log "shouldUpdate :" shouldUpdate
-
                 newTimeDt =
                     model.time + newDt
 
@@ -180,7 +171,10 @@ update msg model =
                         model.board
                 , time = newTimeDt
                 , maxTime =
-                    if model.maxTime - dt > 0 then
+                    if model.board.won then
+                        model.maxTime
+
+                    else if model.maxTime - dt > 0 then
                         model.maxTime - dt
 
                     else

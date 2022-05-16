@@ -265,10 +265,11 @@ view model =
                 ]
             ]
         , Element.row [ alignTop, centerX ]
-            [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 600), paddingXY 20 20, spacing 40 ]
+            [ column [ alignLeft, alignTop, centerX, Element.height shrink, Element.width (px 700), paddingXY 20 20, spacing 40 ]
                 [ el [ alignTop, centerX, Font.size 45 ] (Element.text "Explanation")
                 , paragraph []
-                    [ el [ alignTop, centerX, Font.size 25 ] (Element.text "The goal of the game is to get into the finish tile of the board displayed with ")
+                    [ el [ alignTop, centerX, Font.size 25, Font.bold ] (Element.text "TILES: ")
+                    , el [ alignTop, centerX, Font.size 25 ] (Element.text "The goal of the game is to get into the finish tile of the board displayed with ")
                     , el
                         [ alignTop
                         , centerX
@@ -312,19 +313,21 @@ view model =
                     , el [ alignTop, centerX, Font.size 25 ] (Element.text "tiles")
                     ]
                 , paragraph []
-                    [ el [ alignTop, centerX, Font.size 25 ] (Element.text "You control the blue car by arrows on your keyboard →↑↓←.")
+                    [ el [ alignTop, centerX, Font.size 25, Font.bold ] (Element.text "CONTROLS: ")
+                    , el [ alignTop, centerX, Font.size 25 ] (Element.text "You control the blue car by arrows on your keyboard →↑↓←. You can try it right now")
                     ]
                 , paragraph []
-                    [ el [ alignTop, centerX, Font.size 25 ] (Element.text "If other car is blocking you in your way you can 'jump' on it and swap controls with the other car.")
+                    [ el [ alignTop, centerX, Font.size 25 ] (Element.text "If other car is blocking you in your way you can 'jump' on it and swap controls with the other car (also with arrows).")
                     ]
                 , paragraph []
-                    [ el [ alignTop, centerX, Font.size 25 ] (Element.text "You can change amount of additional jumps, time and you can also change speed of the game in the Settings page.")
+                    [ el [ alignTop, centerX, Font.size 25, Font.bold ] (Element.text "SETTINGS: ")
+                    , el [ alignTop, centerX, Font.size 25 ] (Element.text "You can change amount of additional jumps, duration and you can also change speed of the game in the Settings page.")
                     ]
                 , paragraph []
                     [ el [ alignTop, centerX, Font.size 25 ] (Element.text "Changing these parameters affects your final score which you can see in the High Score page. If you increase jumps or duration your final high score will go down and vice versa. If you increase speed your final high score will go up and vice versa.")
                     ]
                 , paragraph []
-                    [ el [ alignTop, centerX, Font.size 25, Font.bold ] (Element.text "Attention! ")
+                    [ el [ alignTop, centerX, Font.size 25, Font.bold ] (Element.text "ATTENTION! ")
                     , el [ alignTop, centerX, Font.size 25 ] (Element.text "If keyboard input does not work try clicking anywhere nearby the animated game grid.")
                     ]
                 ]
