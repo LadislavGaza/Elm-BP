@@ -4,6 +4,10 @@ import Color exposing (..)
 import Dict exposing (Dict)
 
 
+
+-- defined types and constants
+
+
 type alias User =
     { extraJumps : Int
     , extraGameSpeed : Int

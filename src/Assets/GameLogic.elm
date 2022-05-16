@@ -10,9 +10,17 @@ import Keyboard.Key
 import Tuple3
 
 
+
+--update board with time
+
+
 tick : Float -> Board -> Board
 tick dt board =
     updateBoard board
+
+
+
+--find next coordnita
 
 
 nextCoords : Data.Direction -> Data.Point -> Data.Point
@@ -31,9 +39,13 @@ nextCoords dir ( x, y ) =
             ( x - 1, y )
 
 
+
+--get field  or point and field for first occurance of point
+
+
 get : Data.Point -> Board -> Field
-get coords board =
-    case Dict.Extra.find (\key _ -> key == coords) board.boardItself of
+get point board =
+    case Dict.Extra.find (\key _ -> key == point) board.boardItself of
         Just ( _, tile ) ->
             tile
 
@@ -49,6 +61,10 @@ getPointField coords board =
 
         Nothing ->
             ( ( -1, -1 ), Empty )
+
+
+
+--primary function for updating animated cars
 
 
 updateBoard : Board -> Board
@@ -116,6 +132,10 @@ updateBoard board =
     }
 
 
+
+--rotates car clockwise
+
+
 rotateCar : Car -> Car
 rotateCar car =
     case car.direction of
@@ -130,6 +150,10 @@ rotateCar car =
 
         Data.Left ->
             { car | direction = Data.Up }
+
+
+
+--draws car
 
 
 carElement : Car -> Collage msg
@@ -156,6 +180,10 @@ carElement car =
         Collage.image ( blockSize, blockSize ) "car2.svg" |> Collage.rotate (degrees rotationDegrees)
 
 
+
+-- extract car from field
+
+
 takeCar : ( Data.Point, Field ) -> ( Data.Point, Car )
 takeCar ( point, field ) =
     case field of
@@ -164,6 +192,10 @@ takeCar ( point, field ) =
 
         _ ->
             ( point, { movement = Animated, direction = Data.Down, color = white } )
+
+
+
+--check if car is on given field
 
 
 hasCar : Data.Point -> Field -> Bool
@@ -180,6 +212,10 @@ hasCar point field =
 
         Empty ->
             False
+
+
+
+--primary function for moving key input car
 
 
 moveCars : Maybe KeyboardEvent -> Board -> Board

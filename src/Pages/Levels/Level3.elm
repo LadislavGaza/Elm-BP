@@ -22,7 +22,7 @@ import String
 
 
 
-----MODEL----
+-- MODEL
 
 
 amountOfJumps =
@@ -109,6 +109,10 @@ init user =
     )
 
 
+
+-- UPDATE
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -191,6 +195,10 @@ update msg model =
               }
             , Cmd.none
             )
+
+
+
+-- VIEW
 
 
 boardElement : Model -> Collage Msg
@@ -307,6 +315,10 @@ view model =
                 ]
             ]
         ]
+
+
+
+-- SUBSCRIPTIONS
 
 
 subs : Model -> Sub Msg

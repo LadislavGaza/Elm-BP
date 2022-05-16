@@ -9,7 +9,7 @@ import String
 
 
 
-----MODEL----
+-- MODEL
 
 
 type alias Model =
@@ -25,7 +25,7 @@ init user =
 
 
 
----UPDATE----
+-- UPDATE
 
 
 type Msg
@@ -40,7 +40,7 @@ update msg model =
 
 
 
----- VIEW ----
+-- VIEW
 
 
 view : Model -> Element Msg

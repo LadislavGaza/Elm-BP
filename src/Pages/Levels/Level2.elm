@@ -22,7 +22,7 @@ import String
 
 
 
-----MODEL----
+-- MODEL
 
 
 amountOfJumps =
@@ -121,10 +121,6 @@ initialBoard user =
     }
 
 
-
--- Model
-
-
 type Msg
     = HandleKeyboardEvent KeyboardEvent
     | Tick Delta
@@ -146,6 +142,10 @@ init user =
     )
 
 
+
+-- UPDATE
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -165,7 +165,6 @@ update msg model =
         Tick dt ->
             let
                 newDt =
-                    -- dt + dt * Basics.toFloat model.localUser.extraGameSpeed
                     dt * Basics.toFloat (2 ^ model.localUser.extraGameSpeed)
 
                 newTimeDt =
@@ -229,6 +228,10 @@ update msg model =
               }
             , Cmd.none
             )
+
+
+
+-- VIEW
 
 
 boardElement : Model -> Collage Msg
@@ -345,6 +348,10 @@ view model =
                 ]
             ]
         ]
+
+
+
+-- SUBSCRIPTIONS
 
 
 subs : Model -> Sub Msg

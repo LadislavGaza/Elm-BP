@@ -22,9 +22,7 @@ import Url.Parser as Parser exposing (Parser, oneOf, s)
 
 
 
--- https://github.com/harbingerr/Elm-Game/blob/master/src/Main.elm
--- https://github.com/elm/package.elm-lang.org/blob/master/src/frontend/Main.elm
----- MODEL ----
+-- MODEL
 
 
 type Page
@@ -37,6 +35,10 @@ type Page
     | Settings Pages.Settings.Model
     | Global
     | NotFound
+
+
+
+--primary model
 
 
 type alias Model =
@@ -73,7 +75,7 @@ init maybeUser url key =
 
 
 
----- UPDATE ----
+-- UPDATE
 
 
 type Msg
@@ -86,6 +88,10 @@ type Msg
     | Level3Msg Pages.Levels.Level3.Msg
     | TutorialMsg Pages.Levels.Tutorial.Msg
     | SettingsMsg Pages.Settings.Msg
+
+
+
+--changing view page, parent child communication with OutMsg pattern
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -228,6 +234,12 @@ update message model =
                     ( model, Cmd.none )
 
 
+
+-- https://github.com/harbingerr/Elm-Game/blob/master/src/Main.elm Milan Bohna
+-- https://github.com/elm/package.elm-lang.org/blob/master/src/frontend/Main.elm Evan Czaplicki
+-- routing on changed url
+
+
 stepUrl : Url.Url -> Model -> ( Model, Cmd Msg )
 stepUrl url model =
     let
@@ -248,6 +260,10 @@ stepUrl url model =
 
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
+
+
+
+-- changing model for specifies page
 
 
 stepHome : Model -> ( Pages.Home.Model, Cmd Pages.Home.Msg ) -> ( Model, Cmd Msg )
@@ -300,7 +316,7 @@ stepTutorial model ( tutorial, cmds ) =
 
 
 
-{- https://github.com/elm/package.elm-lang.org/blob/master/src/frontend/Main.elm -}
+-- parsing url
 
 
 route : Parser a b -> a -> Parser (b -> c) c
@@ -344,7 +360,7 @@ subscriptions model =
 
 
 
----- VIEW ----
+-- VIEW
 
 
 view : Model -> Browser.Document Msg
@@ -422,7 +438,7 @@ globalHomeView =
 
 
 
-----PORTS----
+-- PORTS
 
 
 encodeUser : User -> Cmd msg
@@ -442,7 +458,7 @@ encodeUser user =
 
 
 
----- PROGRAM ----
+-- PROGRAM
 
 
 main : Program (Maybe User) Model Msg

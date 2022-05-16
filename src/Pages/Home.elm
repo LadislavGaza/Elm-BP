@@ -7,7 +7,7 @@ import Element.Font as Font
 
 
 
-----MODEL----
+-- MODEL
 
 
 type alias Model =
@@ -20,7 +20,7 @@ init _ =
 
 
 
----UPDATE----
+-- UPDATE
 
 
 type Msg
@@ -35,7 +35,7 @@ update message model =
 
 
 
----- VIEW ----
+-- VIEW
 
 
 view : Model -> Element Msg

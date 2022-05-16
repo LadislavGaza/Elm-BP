@@ -6,6 +6,10 @@ import Element.Border as Border
 import Element.Font as Font
 
 
+
+--this style is applied for every Element button
+
+
 buttonStyle : List (Element.Attribute msg)
 buttonStyle =
     [ width (px 300)

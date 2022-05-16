@@ -22,7 +22,7 @@ import String
 
 
 
-----MODEL----
+-- MODEL
 
 
 amountOfJumps =
@@ -81,10 +81,6 @@ initialBoard user =
     }
 
 
-
--- Model
-
-
 type Msg
     = HandleKeyboardEvent KeyboardEvent
     | Tick Delta
@@ -104,6 +100,10 @@ init user =
     ( { localUser = user, lastEvent = Nothing, time = 0, board = initialBoard user, maxTime = gameDuration + Basics.toFloat user.extraDuration }
     , Cmd.none
     )
+
+
+
+-- UPDATE
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -188,6 +188,10 @@ update msg model =
               }
             , Cmd.none
             )
+
+
+
+-- VIEW
 
 
 boardElement : Model -> Collage Msg
@@ -304,6 +308,10 @@ view model =
                 ]
             ]
         ]
+
+
+
+-- SUBSCRIPTIONS
 
 
 subs : Model -> Sub Msg
